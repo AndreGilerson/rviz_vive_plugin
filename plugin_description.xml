@@ -1,0 +1,9 @@
+<library path="librviz_vive_plugin">
+  <class type="rviz_vive_plugin::ViveDisplay"
+         base_class_type="rviz::Display">
+    <description>
+      Renders the rviz scene to the Oculus Rift.
+    </description>
+  </class>
+</library>
+
