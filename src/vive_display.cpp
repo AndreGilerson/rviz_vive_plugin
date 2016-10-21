@@ -88,7 +88,7 @@ void ViveDisplay::update(float wall_dt, float ros_dt)
     ori = cam->getDerivedOrientation();
 	
 	_pSceneNode->setOrientation(ori);
-	_pSceneNode->roll(Ogre::Radian(3.1415));
+	_pSceneNode->roll(Ogre::Radian(M_PI));
 	_pSceneNode->setPosition(pos);
 	
 	Ogre::ColourValue bg_color = _pDisplayContext->getViewManager()->getRenderPanel()->getViewport()->getBackgroundColour();
