@@ -83,26 +83,16 @@ void ViveDisplay::update(float wall_dt, float ros_dt)
 	
 	_pDisplayContext->getFrameManager()->getTransform( _pTfFrameProperty->getStdString(),
 													ros::Time(), pos, ori );
-    const Ogre::Camera *cam = context_->getViewManager()->getCurrent()->getCamera();
+    Ogre::Camera *cam = _pDisplayContext->getViewManager()->getCurrent()->getCamera();
     pos = cam->getDerivedPosition();
     ori = cam->getDerivedOrientation();
 	
 	_pSceneNode->setOrientation(ori);
+	_pSceneNode->roll(Ogre::Radian(3.1415));
 	_pSceneNode->setPosition(pos);
 	
 	Ogre::ColourValue bg_color = _pDisplayContext->getViewManager()->getRenderPanel()->getViewport()->getBackgroundColour();
 	
-	/*for ( int i =0; i<2; i++ )
-	{
-		_pViewPorts[i]->setBackgroundColour(bg_color);
-		_pCameras[i]->setNearClipDistance(0.01f);
-	
-		// this is a hack to circumvent a bug in Ogre 1.8
-		// otherwise one of the viewports will not update it's background color
-		bg_color.g += 0.0001;
-	}*/
-	
-	updateProjectionMatrices();
 	if(_doneSetup)
 	{
 		_vive.Update();
@@ -121,11 +111,11 @@ void ViveDisplay::updateProjectionMatrices()
 {
 	for (int i = 0; i < 2; ++i)
 	{
-		_pCameras[i]->setCustomProjectionMatrix(false);
+		/*_pCameras[i]->setCustomProjectionMatrix(false);
 		Ogre::Matrix4 proj = Ogre::Matrix4::IDENTITY;
 		float temp = 0.14529906f;
 		proj.setTrans(Ogre::Vector3(-0.14529906f * (2 * i - 1), 0, 0));
-		_pCameras[i]->setCustomProjectionMatrix(true, proj * _pCameras[i]->getProjectionMatrix());
+		_pCameras[i]->setCustomProjectionMatrix(true, proj * _pCameras[i]->getProjectionMatrix());*/
 	}
 }
 
@@ -167,77 +157,23 @@ bool ViveDisplay::setupOgre()
 		Ogre::TEX_TYPE_2D,
 		_vive.GetWidth(), _vive.GetHeight(), 0, Ogre::PF_R8G8B8A8, Ogre::TU_RENDERTARGET);
 	
-	/*Ogre::MaterialPtr matLeft = Ogre::MaterialManager::getSingleton().getByName("Ogre/Compositor/Oculus");
-	Ogre::MaterialPtr matRight = matLeft->clone("Ogre/Compositor/Oculus/Right");
-	Ogre::GpuProgramParametersSharedPtr pParamsLeft =
-		matLeft->getTechnique(0)->getPass(0)->getFragmentProgramParameters();
-	Ogre::GpuProgramParametersSharedPtr pParamsRight =
-		matRight->getTechnique(0)->getPass(0)->getFragmentProgramParameters();
-	Ogre::Vector4 hmdwarp;
-	if (m_stereoConfig)
-	{
-		hmdwarp = Ogre::Vector4(m_stereoConfig->GetDistortionK(0), m_stereoConfig->GetDistortionK(1),
-								m_stereoConfig->GetDistortionK(2), m_stereoConfig->GetDistortionK(3));
-	}
-	else
-	{
-		hmdwarp = Ogre::Vector4(g_defaultDistortion[0], g_defaultDistortion[1], g_defaultDistortion[2],
-								g_defaultDistortion[3]);
-	}
-	
-	pParamsLeft->setNamedConstant("HmdWarpParam", hmdwarp);
-	pParamsRight->setNamedConstant("HmdWarpParam", hmdwarp);
-	
-	Ogre::Vector4 hmdchrom;
-	if (m_stereoConfig)
-	{
-		hmdchrom = Ogre::Vector4(m_stereoConfig->GetHMDInfo().ChromaAbCorrection);
-	}
-	else
-	{
-		hmdchrom = Ogre::Vector4(g_defaultChromAb);
-	}
-	pParamsLeft->setNamedConstant("ChromAbParam", hmdchrom);
-	pParamsRight->setNamedConstant("ChromAbParam", hmdchrom);
-	
-	pParamsLeft->setNamedConstant("LensCenter", 0.5f + (0.14529906f / 2.0f));
-	pParamsRight->setNamedConstant("LensCenter", 0.5f - (0.14529906f / 2.0f));
-	Ogre::CompositorManager::getSingletonPtr();
-	Ogre::CompositorPtr comp = Ogre::CompositorManager::getSingleton().getByName("OculusRight");
-	comp->getTechnique(0)->getOutputTargetPass()->getPass(0)->setMaterialName("Ogre/Compositor/Oculus/Right");
-	*/
 	for (int i = 0; i < 2; ++i)
 	{
 		_pCameraNode->attachObject(_pCameras[i]);
-		/*if (m_stereoConfig)
-		{
-			// Setup cameras.
-			m_cameras[i]->setNearClipDistance(m_stereoConfig->GetEyeToScreenDistance());
-			m_cameras[i]->setFarClipDistance(g_defaultFarClip);
-			m_cameras[i]->setPosition((i * 2 - 1) * m_stereoConfig->GetIPD() * 0.5f, 0, 0);
-			m_cameras[i]->setAspectRatio(m_stereoConfig->GetAspect());
-			m_cameras[i]->setFOVy(Ogre::Radian(m_stereoConfig->GetYFOVRadians()));
-		}
-		else*/
 		{
 			_pCameras[i]->setNearClipDistance(g_defaultNearClip);
-			_pCameras[i]->setPosition((i * 2 - 1) * g_defaultIPD * 0.5f, 0, 0);
 			_pCameras[i]->setFarClipDistance(g_defaultFarClip);
+			_pCameras[i]->setPosition((i * 2 - 1) * (-1-g_defaultIPD) * 0.5f, 0, 0);
 		}
 		_pViewPorts[i] = _pRenderWindow->addViewport(_pCameras[i], i, 0.5f * i, 0, 0.5f, 1.0f);
 		_pViewPorts[i]->setBackgroundColour(g_defaultViewportColour);
 		
 		_pRenderTextures[i] = _renderTextures[i]->getBuffer()->getRenderTarget();
-		_pRenderTextures[i] ->addViewport(_pCameras[0]);
+		_pRenderTextures[i] ->addViewport(_pCameras[i]);
 		_pRenderTextures[i] ->getViewport(0)->setClearEveryFrame(true);
 		_pRenderTextures[i] ->getViewport(0)->setBackgroundColour(Ogre::ColourValue::Black);
 		_pRenderTextures[i] ->getViewport(0)->setOverlaysEnabled(false);
-		//_pCompositors[i] = Ogre::CompositorManager::getSingleton().addCompositor(_pViewPorts[i],
-		//																		i == 0 ? "OculusLeft" : "OculusRight");
-		//_pCompositors[i]->setEnabled(true);
 	}
-	
-	updateProjectionMatrices();
 	
 	Ogre::LogManager::getSingleton().logMessage("Oculus: Oculus setup completed successfully");
 	_doneSetup = true;

@@ -24,7 +24,7 @@ public:
 	void Update();
 	void SubmitTexture(GLuint textureId, uint32_t eye);
 	void RenderFrame();
-private:
+
 	bool InitGL();
 	bool InitCompositor();
 
