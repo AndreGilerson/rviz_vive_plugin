@@ -46,7 +46,6 @@ _pRenderWindow(0)
 ViveDisplay::~ViveDisplay()
 {
 	_doneSetup = false;
-	_firstPose = true;
 }
 
 void ViveDisplay::onInitialize()
@@ -100,18 +99,13 @@ void ViveDisplay::update(float wall_dt, float ros_dt)
 		_pCameraNode->pitch(-quat.getPitch());
 		_pCameraNode->yaw(quat.getYaw());
 		_pCameraNode->roll(quat.getRoll());
-	} else
-	{
-		_firstPose = true;
-	}
-	
+	} 
 	if(_doneSetup)
 	{
 		_pRenderTextures[0]->update();
 		_pRenderTextures[1]->update();
 		_vive.SubmitTexture(((Ogre::GLTexture*) _renderTextures[0].get())->getGLID(), 0);
 		_vive.SubmitTexture(((Ogre::GLTexture*) _renderTextures[1].get())->getGLID(), 1);
-		//_vive.RenderFrame();
 	}
 }
 
@@ -129,11 +123,6 @@ void ViveDisplay::onDisable()
 void ViveDisplay::updateCamera()
 {
 
-}
-
-void ViveDisplay::onScreenCountChanged(int newCount)
-{
-	
 }
 
 bool ViveDisplay::setupOgre()

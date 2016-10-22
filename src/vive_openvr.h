@@ -32,6 +32,7 @@ public:
 	bool InitGL();
 	bool InitCompositor();
 
+protected:
 	std::string GetTrackedDeviceString( vr::IVRSystem *pHmd, vr::TrackedDeviceIndex_t unDevice, vr::TrackedDeviceProperty prop, vr::TrackedPropertyError *peError = NULL );
 	
 

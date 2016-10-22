@@ -49,13 +49,13 @@ protected:
 	virtual void onDisable();
 	
 	void updateCamera();
-private Q_SLOTS:
-	void onScreenCountChanged( int newCount );
 	
 private:
 	bool setupOgre();
 	Ogre::Matrix4 MatSteamVRtoOgre4(vr::HmdMatrix34_t matrix);
 	Ogre::Matrix4 MatSteamVRtoOgre4(vr::HmdMatrix44_t matrix);
+
+	ViveOpenVR _vive;
 
 	rviz::RenderWidget* _pRenderWidget;
 	rviz::DisplayContext* _pDisplayContext;
@@ -72,12 +72,9 @@ private:
 	
 	rviz::TfFrameProperty* _pTfFrameProperty;
 	
-	ViveOpenVR _vive;
+	Ogre::Matrix4 _prevPose;
 	
 	bool _doneSetup;
-	Ogre::Matrix4 _prevPose;
-	bool _firstPose;
-	Ogre::Matrix4 _projMatrix[2];
 };
 
 }
