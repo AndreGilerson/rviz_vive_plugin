@@ -25,7 +25,10 @@ namespace rviz_vive_plugin
 ViveOpenVR::ViveOpenVR() : _pHMD(0),
 _pRenderModels(0),
 _strDriver("No Driver"),
-_strDisplay("No Display")
+_strDisplay("No Display"),
+_validPoseCount(0),
+_prevValidPoseCount(0),
+_validTracking(false)
 {
 	
 }
@@ -33,12 +36,6 @@ _strDisplay("No Display")
 	
 bool ViveOpenVR::Initialize()
 {
-	/*if(SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER) < 0)
-	{
-		printf("%s - SDL could not initialize! SDL Error: %s\n", __FUNCTION__, SDL_GetError());
-		return false;
-	}*/
-	
 	vr::EVRInitError eError = vr::VRInitError_None;
 	_pHMD = vr::VR_Init(&eError, vr::VRApplication_Scene);
 	
@@ -72,15 +69,12 @@ bool ViveOpenVR::Initialize()
 	
 	_pHMD->GetRecommendedRenderTargetSize(&_width, &_height);
 	
-	if(!vr::VRCompositor())
+	_pCompositor = vr::VRCompositor();
+	if(!_pCompositor)
 	{
 		printf("Compositor initialization failed. See log file for details\n");
 		return false;
 	}
-	
-	_pHMD->CaptureInputFocus();
-	vr::TrackedDevicePose_t m_rTrackedDevicePose[vr::k_unMaxTrackedDeviceCount];
-	vr::VRCompositor()->WaitGetPoses(m_rTrackedDevicePose, vr::k_unMaxTrackedDeviceCount, NULL, 0);
 	
 	return true;
 }
@@ -89,14 +83,77 @@ void ViveOpenVR::Update()
 {
 	vr::VREvent_t event;
 	while( _pHMD->PollNextEvent( &event, sizeof( event ) ) );
+	{
+		switch (event.eventType)
+		{
+		case vr::VREvent_TrackedDeviceActivated:
+		{
+			std::cout << "Tracked device activated:" << event.trackedDeviceIndex << "\n";
+		}
+		break;
+		case vr::VREvent_TrackedDeviceDeactivated:
+		{
+			std::cout << "Trackied device deactivated:" << event.trackedDeviceIndex << "\n";
+		}
+		break;
+		case vr::VREvent_TrackedDeviceUpdated:
+		{
+			std::cout << "Trackied device updated:" << event.trackedDeviceIndex << "\n";
+		}
+		break;
+		}
+	}
+	if(_validPoseCount != _prevValidPoseCount)
+	{
+		if(_validPoseCount > 0) _validTracking = true;
+		else _validTracking = false;
+		std::cout << "Pose count changed: " << _validPoseCount << "\n";
+		_prevValidPoseCount = _validPoseCount;
+		_matSeatedPose = GetHeadPose();
+	}
+}
+
+void ViveOpenVR::UpdatePoses()
+{
+	if ( !_pHMD )
+	return;
+	_validPoseCount = 0;
+	_pCompositor->WaitGetPoses(_trackedDevices, vr::k_unMaxTrackedDeviceCount, NULL, 0 );
+	//_pHMD->GetDeviceToAbsoluteTrackingPose(vr::TrackingUniverseSeated, 0, _trackedDevices, vr::k_unMaxTrackedDeviceCount);
+	for ( int nDevice = 0; nDevice < vr::k_unMaxTrackedDeviceCount; ++nDevice )
+	{
+		if (_trackedDevices[nDevice].bPoseIsValid)
+		{
+			_validPoseCount++;
+			_matDevicePose[nDevice] = _trackedDevices[nDevice].mDeviceToAbsoluteTracking;
+		}
+	}
+}
+
+vr::HmdMatrix34_t ViveOpenVR::GetHeadPose()
+{
+	return _matDevicePose[vr::k_unTrackedDeviceIndex_Hmd];
+}
+
+vr::HmdMatrix34_t ViveOpenVR::GetZeroPose()
+{
+	return _matSeatedPose;
 }
 
 void ViveOpenVR::SubmitTexture(GLuint textureId, uint32_t eye)
 {
+	vr::VRTextureBounds_t bounds;
+	if(eye)		
+	{
+		bounds = { 0.0f, 0.2f, 0.2f, 0.0f };
+	} else
+	{
+		bounds = { 0.0f, 0.2f, 0.2f, 0.0f };
+	}
 	const vr::Texture_t tex = { (void*) textureId, vr::API_OpenGL, vr::ColorSpace_Gamma};
 	glBindTexture(GL_TEXTURE_2D, textureId);
 	vr::EVRCompositorError err;
-	err = vr::VRCompositor()->Submit(eye ? vr::Eye_Left : vr::Eye_Right, &tex);
+	err = _pCompositor->Submit(eye ? vr::Eye_Left : vr::Eye_Right, &tex, &bounds);
 	if(err != vr::EVRCompositorError::VRCompositorError_None)
 	{
 		printf("Error submitting texture: %d \n", err);
@@ -105,7 +162,7 @@ void ViveOpenVR::SubmitTexture(GLuint textureId, uint32_t eye)
 
 void ViveOpenVR::RenderFrame()
 {
-	vr::VRCompositor()->PostPresentHandoff();
+	_pCompositor->PostPresentHandoff();
 }
 
 bool ViveOpenVR::InitGL()

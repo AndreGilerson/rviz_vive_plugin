@@ -24,7 +24,7 @@ namespace rviz_vive_plugin
 {
 	
 const float g_defaultNearClip = 0.01f;
-const float g_defaultFarClip = 10000.0f;
+const float g_defaultFarClip = 1000.0f;
 const float g_defaultIPD = 0.064f;
 const Ogre::ColourValue g_defaultViewportColour(97 / 255.0f, 97 / 255.0f, 200 / 255.0f);
 const float g_defaultProjectionCentreOffset = 0.14529906f;
@@ -46,6 +46,7 @@ _pRenderWindow(0)
 ViveDisplay::~ViveDisplay()
 {
 	_doneSetup = false;
+	_firstPose = true;
 }
 
 void ViveDisplay::onInitialize()
@@ -67,11 +68,6 @@ void ViveDisplay::onInitialize()
 	
 	_pSceneNode = _pSceneManager->getRootSceneNode()->createChildSceneNode();
 	
-	std::string rviz_path = ros::package::getPath(ROS_PACKAGE_NAME);
-	Ogre::ResourceGroupManager::getSingleton();
-	Ogre::ResourceGroupManager::getSingleton().addResourceLocation( rviz_path + "/ogre_media", "FileSystem", ROS_PACKAGE_NAME );
-	Ogre::ResourceGroupManager::getSingleton().initialiseResourceGroup(ROS_PACKAGE_NAME);
-	
 	_vive.Initialize();
 	setupOgre();
 }
@@ -88,36 +84,39 @@ void ViveDisplay::update(float wall_dt, float ros_dt)
     ori = cam->getDerivedOrientation();
 	
 	_pSceneNode->setOrientation(ori);
-	_pSceneNode->roll(Ogre::Radian(M_PI));
 	_pSceneNode->setPosition(pos);
 	
-	Ogre::ColourValue bg_color = _pDisplayContext->getViewManager()->getRenderPanel()->getViewport()->getBackgroundColour();
+	_vive.Update();
+	_vive.UpdatePoses();
+
+	_pSceneNode->roll(Ogre::Radian(M_PI));
+	_prevPose = MatSteamVRtoOgre4(_vive.GetZeroPose());
+	Ogre::Matrix4 hmdPose = MatSteamVRtoOgre4(_vive.GetHeadPose());
+	if(_vive.ValidTracking())
+	{
+		_pCameraNode->setPosition(_prevPose.getTrans() - hmdPose.getTrans());
+		Ogre::Quaternion quat = _prevPose.extractQuaternion().Inverse() * hmdPose.extractQuaternion();
+		_pCameraNode->resetOrientation();
+		_pCameraNode->pitch(-quat.getPitch());
+		_pCameraNode->yaw(quat.getYaw());
+		_pCameraNode->roll(quat.getRoll());
+	} else
+	{
+		_firstPose = true;
+	}
 	
 	if(_doneSetup)
 	{
-		_vive.Update();
 		_pRenderTextures[0]->update();
 		_pRenderTextures[1]->update();
 		_vive.SubmitTexture(((Ogre::GLTexture*) _renderTextures[0].get())->getGLID(), 0);
 		_vive.SubmitTexture(((Ogre::GLTexture*) _renderTextures[1].get())->getGLID(), 1);
-		_vive.RenderFrame();
+		//_vive.RenderFrame();
 	}
 }
 
 void ViveDisplay::reset()
 {}
-
-void ViveDisplay::updateProjectionMatrices()
-{
-	for (int i = 0; i < 2; ++i)
-	{
-		/*_pCameras[i]->setCustomProjectionMatrix(false);
-		Ogre::Matrix4 proj = Ogre::Matrix4::IDENTITY;
-		float temp = 0.14529906f;
-		proj.setTrans(Ogre::Vector3(-0.14529906f * (2 * i - 1), 0, 0));
-		_pCameras[i]->setCustomProjectionMatrix(true, proj * _pCameras[i]->getProjectionMatrix());*/
-	}
-}
 
 void ViveDisplay::onEnable()
 {
@@ -144,9 +143,10 @@ bool ViveDisplay::setupOgre()
 		_pCameraNode = _pSceneNode->createChildSceneNode("StereoCameraNode");
 	else
 		_pCameraNode = _pSceneManager->getRootSceneNode()->createChildSceneNode("StereoCameraNode");
-
+	
 	_pCameras[0] = _pSceneManager->createCamera("CameraLeft");
 	_pCameras[1] = _pSceneManager->createCamera("CameraRight");
+	
 	
 	_renderTextures[0]= Ogre::TextureManager::getSingleton().createManual(
 		"RenderTexture1", Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME,
@@ -157,9 +157,13 @@ bool ViveDisplay::setupOgre()
 		Ogre::TEX_TYPE_2D,
 		_vive.GetWidth(), _vive.GetHeight(), 0, Ogre::PF_R8G8B8A8, Ogre::TU_RENDERTARGET);
 	
+	Ogre::MaterialPtr matLeft = Ogre::MaterialManager::getSingleton().getByName("Ogre/Compositor/Oculus");
+	
 	for (int i = 0; i < 2; ++i)
 	{
+		_pCameras[i]->detachFromParent();
 		_pCameraNode->attachObject(_pCameras[i]);
+		
 		{
 			_pCameras[i]->setNearClipDistance(g_defaultNearClip);
 			_pCameras[i]->setFarClipDistance(g_defaultFarClip);
@@ -169,15 +173,35 @@ bool ViveDisplay::setupOgre()
 		_pViewPorts[i]->setBackgroundColour(g_defaultViewportColour);
 		
 		_pRenderTextures[i] = _renderTextures[i]->getBuffer()->getRenderTarget();
-		_pRenderTextures[i] ->addViewport(_pCameras[i]);
-		_pRenderTextures[i] ->getViewport(0)->setClearEveryFrame(true);
-		_pRenderTextures[i] ->getViewport(0)->setBackgroundColour(Ogre::ColourValue::Black);
-		_pRenderTextures[i] ->getViewport(0)->setOverlaysEnabled(false);
+		_pRenderTextures[i]->addViewport(_pCameras[i]);
+		_pRenderTextures[i]->getViewport(0)->setClearEveryFrame(true);
+		_pRenderTextures[i]->getViewport(0)->setBackgroundColour(Ogre::ColourValue::Black);
+		_pRenderTextures[i]->getViewport(0)->setOverlaysEnabled(false);
 	}
-	
+
 	Ogre::LogManager::getSingleton().logMessage("Oculus: Oculus setup completed successfully");
 	_doneSetup = true;
 	return true;
+}
+
+Ogre::Matrix4 ViveDisplay::MatSteamVRtoOgre4(vr::HmdMatrix34_t matrix)
+{
+	return Ogre::Matrix4 (
+		matrix.m[0][0], matrix.m[0][1], matrix.m[0][2], matrix.m[0][3],
+		matrix.m[1][0], matrix.m[1][1], matrix.m[1][2], matrix.m[1][3],
+		matrix.m[2][0], matrix.m[2][1], matrix.m[2][2], matrix.m[2][3],
+		0.0, 0.0, 0.0, 1.0f
+		);
+}
+
+Ogre::Matrix4 ViveDisplay::MatSteamVRtoOgre4(vr::HmdMatrix44_t matrix)
+{
+	return Ogre::Matrix4 (
+		matrix.m[0][0], matrix.m[0][1], matrix.m[0][2], matrix.m[0][3],
+		matrix.m[1][0], matrix.m[1][1], matrix.m[1][2], matrix.m[1][3],
+		matrix.m[2][0], matrix.m[2][1], matrix.m[2][2], matrix.m[2][3],
+		matrix.m[3][0], matrix.m[3][1], matrix.m[3][0], matrix.m[3][3]
+		);
 }
 
 }

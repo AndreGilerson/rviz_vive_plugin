@@ -44,8 +44,6 @@ public:
 	virtual void onInitialize();
 	virtual void update(float wall_dt, float ros_dt);
 	virtual void reset();
-
-	void updateProjectionMatrices();
 protected:
 	virtual void onEnable();
 	virtual void onDisable();
@@ -56,6 +54,8 @@ private Q_SLOTS:
 	
 private:
 	bool setupOgre();
+	Ogre::Matrix4 MatSteamVRtoOgre4(vr::HmdMatrix34_t matrix);
+	Ogre::Matrix4 MatSteamVRtoOgre4(vr::HmdMatrix44_t matrix);
 
 	rviz::RenderWidget* _pRenderWidget;
 	rviz::DisplayContext* _pDisplayContext;
@@ -75,7 +75,9 @@ private:
 	ViveOpenVR _vive;
 	
 	bool _doneSetup;
-	GLuint _testTexture;
+	Ogre::Matrix4 _prevPose;
+	bool _firstPose;
+	Ogre::Matrix4 _projMatrix[2];
 };
 
 }
