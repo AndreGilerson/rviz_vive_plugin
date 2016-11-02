@@ -9,6 +9,7 @@
 #include <OGRE/OgreCompositionTargetPass.h>
 #include <OGRE/OgreCompositionPass.h>
 #include <OGRE/OgreRenderTexture.h>
+#include <OGRE/OgreRenderSystem.h>
 
 #include <rviz/properties/tf_frame_property.h>
 
@@ -30,7 +31,7 @@ const Ogre::ColourValue g_defaultViewportColour(97 / 255.0f, 97 / 255.0f, 200 / 
 const float g_defaultProjectionCentreOffset = 0.14529906f;
 const float g_defaultDistortion[4] = {1.0f, 0.22f, 0.24f, 0.0f};
 const float g_defaultChromAb[4] = {0.996, -0.004, 1.014, 0.0f};
-
+	
 ViveDisplay::ViveDisplay() : _pRenderWidget(0),
 _pDisplayContext(0),
 _pSceneNode(0),
@@ -52,6 +53,10 @@ void ViveDisplay::onInitialize()
 {
 	_pTfFrameProperty = new rviz::TfFrameProperty( "Target Frame", "<Fixed Frame>",
 	"Tf frame that the Oculus camera should follow.", this, context_->getFrameManager(), true );
+	_pTranslationProperty = new rviz::BoolProperty("Fixed Position", false, 
+	"If checked will ignore translation of HTC Vive", this);
+	_pOrientationProperty = new rviz::BoolProperty("Fixed Orientation", false,
+	"If checked will ignore orientation of HTC Vive", this);
 	
 	_pSceneManager = scene_manager_; //Random global pointer by RVIZ
 	_pDisplayContext = context_;
@@ -60,11 +65,11 @@ void ViveDisplay::onInitialize()
 	_pRenderWidget->setParent(_pDisplayContext->getWindowManager()->getParentWindow());
 	_pRenderWidget->setWindowFlags( Qt::Window | Qt::CustomizeWindowHint | Qt::WindowTitleHint | Qt::WindowMaximizeButtonHint );
 	_pRenderWidget->setVisible(true);
+	_pRenderWidget->showFullScreen();
 	
 	_pRenderWindow = _pRenderWidget->getRenderWindow();
 	_pRenderWindow->setVisible(true);
-	_pRenderWindow->setAutoUpdated(true);
-	
+	_pRenderWindow->setAutoUpdated(false);
 	_pSceneNode = _pSceneManager->getRootSceneNode()->createChildSceneNode();
 	
 	_vive.Initialize();
@@ -89,16 +94,24 @@ void ViveDisplay::update(float wall_dt, float ros_dt)
 	_vive.UpdatePoses();
 
 	_pSceneNode->roll(Ogre::Radian(M_PI));
+	_pCameraNode->resetOrientation();
+	
 	_prevPose = MatSteamVRtoOgre4(_vive.GetZeroPose());
 	Ogre::Matrix4 hmdPose = MatSteamVRtoOgre4(_vive.GetHeadPose());
+	
 	if(_vive.ValidTracking())
 	{
-		_pCameraNode->setPosition(_prevPose.getTrans() - hmdPose.getTrans());
-		Ogre::Quaternion quat = _prevPose.extractQuaternion().Inverse() * hmdPose.extractQuaternion();
-		_pCameraNode->resetOrientation();
-		_pCameraNode->pitch(-quat.getPitch());
-		_pCameraNode->yaw(quat.getYaw());
-		_pCameraNode->roll(quat.getRoll());
+		if(!_pTranslationProperty->getBool())
+		{
+			_pCameraNode->setPosition(_prevPose.getTrans() - hmdPose.getTrans());
+		}
+		if(!_pOrientationProperty->getBool())
+		{
+			Ogre::Quaternion quat = _prevPose.extractQuaternion().Inverse() * hmdPose.extractQuaternion();
+			_pCameraNode->pitch(-quat.getPitch());
+			_pCameraNode->yaw(quat.getYaw());
+			_pCameraNode->roll(-quat.getRoll());
+		}
 	} 
 	if(_doneSetup)
 	{
@@ -107,6 +120,7 @@ void ViveDisplay::update(float wall_dt, float ros_dt)
 		_vive.SubmitTexture(((Ogre::GLTexture*) _renderTextures[0].get())->getGLID(), 0);
 		_vive.SubmitTexture(((Ogre::GLTexture*) _renderTextures[1].get())->getGLID(), 1);
 	}
+	_pRenderWindow->update(true);
 }
 
 void ViveDisplay::reset()
@@ -153,11 +167,11 @@ bool ViveDisplay::setupOgre()
 		_pCameras[i]->detachFromParent();
 		_pCameraNode->attachObject(_pCameras[i]);
 		
-		{
-			_pCameras[i]->setNearClipDistance(g_defaultNearClip);
-			_pCameras[i]->setFarClipDistance(g_defaultFarClip);
-			_pCameras[i]->setPosition((i * 2 - 1) * (-1-g_defaultIPD) * 0.5f, 0, 0);
-		}
+		_pCameras[i]->setNearClipDistance(0.01f);
+		_pCameras[i]->setFarClipDistance(1000.0f);
+		_pCameras[i]->setAutoAspectRatio(true);
+		_pCameras[i]->setPosition((i * 2 - 1) * (-1-g_defaultIPD) * 0.5f, 0, 0);
+
 		_pViewPorts[i] = _pRenderWindow->addViewport(_pCameras[i], i, 0.5f * i, 0, 0.5f, 1.0f);
 		_pViewPorts[i]->setBackgroundColour(g_defaultViewportColour);
 		
@@ -166,8 +180,8 @@ bool ViveDisplay::setupOgre()
 		_pRenderTextures[i]->getViewport(0)->setClearEveryFrame(true);
 		_pRenderTextures[i]->getViewport(0)->setBackgroundColour(Ogre::ColourValue::Black);
 		_pRenderTextures[i]->getViewport(0)->setOverlaysEnabled(false);
+		_pRenderTextures[i]->setAutoUpdated(false);
 	}
-
 	Ogre::LogManager::getSingleton().logMessage("Oculus: Oculus setup completed successfully");
 	_doneSetup = true;
 	return true;

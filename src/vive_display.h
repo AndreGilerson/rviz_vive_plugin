@@ -8,7 +8,6 @@
 #include <OGRE/OgreTexture.h>
 #include <OGRE/RenderSystems/GL/OgreGLTexture.h>
 
-
 namespace Ogre
 {
 class SceneNode;
@@ -32,10 +31,11 @@ class TfFrameProperty;
 
 namespace rviz_vive_plugin
 {
-
+	
 class ViveDisplay: public rviz::Display
 {
 Q_OBJECT
+	
 public:
 	ViveDisplay();
 	virtual ~ViveDisplay();
@@ -54,7 +54,8 @@ private:
 	bool setupOgre();
 	Ogre::Matrix4 MatSteamVRtoOgre4(vr::HmdMatrix34_t matrix);
 	Ogre::Matrix4 MatSteamVRtoOgre4(vr::HmdMatrix44_t matrix);
-
+	
+	
 	ViveOpenVR _vive;
 
 	rviz::RenderWidget* _pRenderWidget;
@@ -71,6 +72,8 @@ private:
 	Ogre::RenderTexture* _pRenderTextures[2];
 	
 	rviz::TfFrameProperty* _pTfFrameProperty;
+	rviz::BoolProperty* _pTranslationProperty;
+	rviz::BoolProperty* _pOrientationProperty;
 	
 	Ogre::Matrix4 _prevPose;
 	
