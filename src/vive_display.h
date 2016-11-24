@@ -8,6 +8,9 @@
 #include <OGRE/OgreTexture.h>
 #include <OGRE/RenderSystems/GL/OgreGLTexture.h>
 
+#include "openvr_driver.h"
+
+#include "vive_serverdriverhost.h"
 namespace Ogre
 {
 class SceneNode;
@@ -27,7 +30,7 @@ class TfFrameProperty;
 }
 
 #include <QObject>
-#include "vive_openvr.h"
+//#include "vive_openvr.h"
 
 namespace rviz_vive_plugin
 {
@@ -44,11 +47,6 @@ public:
 	virtual void onInitialize();
 	virtual void update(float wall_dt, float ros_dt);
 	virtual void reset();
-protected:
-	virtual void onEnable();
-	virtual void onDisable();
-	
-	void updateCamera();
 	
 private:
 	bool setupOgre();
@@ -56,14 +54,16 @@ private:
 	Ogre::Matrix4 MatSteamVRtoOgre4(vr::HmdMatrix44_t matrix);
 	
 	
-	ViveOpenVR _vive;
+	//ViveOpenVR _vive;
 
 	rviz::RenderWidget* _pRenderWidget;
+	rviz::RenderWidget* _pViveRenderWidget;
 	rviz::DisplayContext* _pDisplayContext;
 	Ogre::SceneNode* _pSceneNode;
 	Ogre::SceneNode* _pCameraNode;
 	Ogre::SceneManager* _pSceneManager;
 	Ogre::RenderWindow* _pRenderWindow;
+	Ogre::RenderWindow* _pViveRenderWindow;
 	Ogre::Viewport* _pViewPorts[2];
 	Ogre::Camera* _pCameras[2];
 	Ogre::CompositorInstance* _pCompositors[2];
@@ -78,6 +78,8 @@ private:
 	Ogre::Matrix4 _prevPose;
 	
 	bool _doneSetup;
+	
+	ServerDriverHost sev;
 };
 
 }

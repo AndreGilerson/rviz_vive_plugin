@@ -50,6 +50,8 @@ add_definitions(-DQT_NO_KEYWORDS)
 set(SRC_FILES
   src/vive_display.cpp
   src/vive_openvr.cpp
+  src/vive_driver.cpp
+  src/vive_serverdriverhost.cpp
 )
 
 ## An rviz plugin is just a shared library, so here we declare the
@@ -80,8 +82,6 @@ install(TARGETS
   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
-
-message(STATUS "Party at ${CATKIN_PACKAGE_SHARE_DESTINATION}")
 
 install(DIRECTORY ogre_media
   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}

@@ -17,7 +17,7 @@
 #endif
 
 #include "vive_openvr.h"
-#include "vive_display.h"
+//#include "vive_display.h"
 #include <OGRE/RenderSystems/GL/OgreGLTextureManager.h>
 
 namespace rviz_vive_plugin
@@ -36,8 +36,8 @@ _validTracking(false)
 	
 bool ViveOpenVR::Initialize()
 {
-	vr::EVRInitError eError = vr::VRInitError_None;
-	_pHMD = vr::VR_Init(&eError, vr::VRApplication_Scene);
+	/*vr::EVRInitError eError = vr::VRInitError_None;
+	_pHMD = vr::VR_Init(&eError, vr::VRApplication_Background);
 	
 	if(eError != vr::VRInitError_None)
 	{
@@ -75,7 +75,7 @@ bool ViveOpenVR::Initialize()
 		printf("Compositor initialization failed. See log file for details\n");
 		return false;
 	}
-	
+	*/
 	return true;
 }
 

@@ -1,5 +1,5 @@
 #include "vive_display.h"
-#include "vive_openvr.h"
+//#include "vive_openvr.h"
 
 #include <OGRE/OgreRoot.h>
 #include <OGRE/OgreSceneNode.h>
@@ -21,8 +21,14 @@
 #include <rviz/ogre_helpers/render_system.h>
 #include <rviz/frame_manager.h>
 
+#include <QApplication>
+#include <QDesktopWidget>
+
+#include <cstdlib>
+#include <dlfcn.h>
+
 namespace rviz_vive_plugin
-{
+{	
 	
 const float g_defaultNearClip = 0.01f;
 const float g_defaultFarClip = 1000.0f;
@@ -65,19 +71,34 @@ void ViveDisplay::onInitialize()
 	_pRenderWidget->setParent(_pDisplayContext->getWindowManager()->getParentWindow());
 	_pRenderWidget->setWindowFlags( Qt::Window | Qt::CustomizeWindowHint | Qt::WindowTitleHint | Qt::WindowMaximizeButtonHint );
 	_pRenderWidget->setVisible(true);
-	_pRenderWidget->showFullScreen();
+	//_pRenderWidget->showFullScreen();
 	
 	_pRenderWindow = _pRenderWidget->getRenderWindow();
 	_pRenderWindow->setVisible(true);
 	_pRenderWindow->setAutoUpdated(false);
 	_pSceneNode = _pSceneManager->getRootSceneNode()->createChildSceneNode();
 	
-	_vive.Initialize();
+	std::cout << QApplication::desktop()->screenCount() << std::endl;
+	int id = 0;
+	for(int i = 0; i < QApplication::desktop()->screenCount(); i++)
+	{
+		std::cout << "Width:" << QApplication::desktop()->screenGeometry(i).width() << std::endl;
+		if(QApplication::desktop()->screenGeometry(i).width() > 2000) id = i;
+	}
+	
+	_pViveRenderWidget = new rviz::RenderWidget(rviz::RenderSystem::get());
+	_pViveRenderWidget->setGeometry(QApplication::desktop()->screenGeometry(id));
+	_pViveRenderWindow = _pViveRenderWidget->getRenderWindow();
+	_pViveRenderWidget->showFullScreen();
+	//_vive.Initialize();
+
 	setupOgre();
 }
 
 void ViveDisplay::update(float wall_dt, float ros_dt)
 {
+	sev.Update();
+	
 	Ogre::Vector3 pos;
 	Ogre::Quaternion ori;
 	
@@ -90,54 +111,30 @@ void ViveDisplay::update(float wall_dt, float ros_dt)
 	_pSceneNode->setOrientation(ori);
 	_pSceneNode->setPosition(pos);
 	
-	_vive.Update();
-	_vive.UpdatePoses();
-
-	_pSceneNode->roll(Ogre::Radian(M_PI));
-	_pCameraNode->resetOrientation();
-	
-	_prevPose = MatSteamVRtoOgre4(_vive.GetZeroPose());
-	Ogre::Matrix4 hmdPose = MatSteamVRtoOgre4(_vive.GetHeadPose());
-	
-	if(_vive.ValidTracking())
+	if(sev.IsRdy())
 	{
-		if(!_pTranslationProperty->getBool())
-		{
-			_pCameraNode->setPosition(_prevPose.getTrans() - hmdPose.getTrans());
-		}
-		if(!_pOrientationProperty->getBool())
-		{
-			Ogre::Quaternion quat = _prevPose.extractQuaternion().Inverse() * hmdPose.extractQuaternion();
-			_pCameraNode->pitch(-quat.getPitch());
-			_pCameraNode->yaw(quat.getYaw());
-			_pCameraNode->roll(-quat.getRoll());
-		}
-	} 
+		pos = sev.GetDeviceTranslation(0);
+		ori = sev.GetDeviceRotation(0);
+	
+		_pCameraNode->setPosition(pos);
+		_pCameraNode->setOrientation(ori);
+		_pCameraNode->roll(Ogre::Radian(M_PI));
+		
+		_pCameras[0]->setPosition((- 1) * (sev.GetDevicePhsycialIpd(0))*0.5, 0, 0);
+		_pCameras[1]->setPosition((sev.GetDevicePhsycialIpd(0))*0.5, 0, 0);
+	}
+	
 	if(_doneSetup)
 	{
 		_pRenderTextures[0]->update();
 		_pRenderTextures[1]->update();
-		_vive.SubmitTexture(((Ogre::GLTexture*) _renderTextures[0].get())->getGLID(), 0);
-		_vive.SubmitTexture(((Ogre::GLTexture*) _renderTextures[1].get())->getGLID(), 1);
 	}
 	_pRenderWindow->update(true);
+	_pViveRenderWindow->update(true);
 }
 
 void ViveDisplay::reset()
 {}
-
-void ViveDisplay::onEnable()
-{
-}
-
-void ViveDisplay::onDisable()
-{
-}
-
-void ViveDisplay::updateCamera()
-{
-
-}
 
 bool ViveDisplay::setupOgre()
 {
@@ -151,14 +148,23 @@ bool ViveDisplay::setupOgre()
 	_pCameras[1] = _pSceneManager->createCamera("CameraRight");
 	
 	
-	_renderTextures[0]= Ogre::TextureManager::getSingleton().createManual(
+	/*_renderTextures[0]= Ogre::TextureManager::getSingleton().createManual(
 		"RenderTexture1", Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME,
 		Ogre::TEX_TYPE_2D,
 		_vive.GetWidth(), _vive.GetHeight(), 0, Ogre::PF_R8G8B8A8, Ogre::TU_RENDERTARGET);
 	_renderTextures[1] = Ogre::TextureManager::getSingleton().createManual(
 		"RenderTexture2", Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME,
 		Ogre::TEX_TYPE_2D,
-		_vive.GetWidth(), _vive.GetHeight(), 0, Ogre::PF_R8G8B8A8, Ogre::TU_RENDERTARGET);
+		_vive.GetWidth(), _vive.GetHeight(), 0, Ogre::PF_R8G8B8A8, Ogre::TU_RENDERTARGET);*/
+		
+		_renderTextures[0]= Ogre::TextureManager::getSingleton().createManual(
+		"RenderTexture1", Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME,
+		Ogre::TEX_TYPE_2D,
+		1080, 1200, 0, Ogre::PF_R8G8B8A8, Ogre::TU_RENDERTARGET);
+	_renderTextures[1] = Ogre::TextureManager::getSingleton().createManual(
+		"RenderTexture2", Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME,
+		Ogre::TEX_TYPE_2D,
+		1080, 1200, 0, Ogre::PF_R8G8B8A8, Ogre::TU_RENDERTARGET);
 	
 	Ogre::MaterialPtr matLeft = Ogre::MaterialManager::getSingleton().getByName("Ogre/Compositor/Oculus");
 	
@@ -170,9 +176,10 @@ bool ViveDisplay::setupOgre()
 		_pCameras[i]->setNearClipDistance(0.01f);
 		_pCameras[i]->setFarClipDistance(1000.0f);
 		_pCameras[i]->setAutoAspectRatio(true);
-		_pCameras[i]->setPosition((i * 2 - 1) * (-1-g_defaultIPD) * 0.5f, 0, 0);
+		_pCameras[i]->setPosition((i * 2 - 1) * (g_defaultIPD)*1.5, 0, 0);
 
 		_pViewPorts[i] = _pRenderWindow->addViewport(_pCameras[i], i, 0.5f * i, 0, 0.5f, 1.0f);
+		_pViveRenderWindow->addViewport(_pCameras[i], i, 0.5f * i, 0, 0.5f, 1.0f);
 		_pViewPorts[i]->setBackgroundColour(g_defaultViewportColour);
 		
 		_pRenderTextures[i] = _renderTextures[i]->getBuffer()->getRenderTarget();
