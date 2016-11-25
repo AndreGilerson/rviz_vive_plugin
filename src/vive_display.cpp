@@ -120,9 +120,19 @@ void ViveDisplay::update(float wall_dt, float ros_dt)
 		_pCameraNode->setOrientation(ori);
 		_pCameraNode->roll(Ogre::Radian(M_PI));
 		
-		_pCameras[0]->setPosition((- 1) * (sev.GetDevicePhsycialIpd(0))*0.5, 0, 0);
-		_pCameras[1]->setPosition((sev.GetDevicePhsycialIpd(0))*0.5, 0, 0);
+		_pCameras[0]->setPosition((- 1) * (sev.GetDevicePhsycialIpd(0))*0.5, 0, 0.015);
+		_pCameras[1]->setPosition((sev.GetDevicePhsycialIpd(0))*0.5, 0, 0.015);
 	}
+	
+	std::cout << sev.GetDevicePhsycialIpd(0) << std::endl;
+	Ogre::Matrix4 projL(0.757831, 0, -0.057541, 0, 0, 0.682011, -0.00412136, 0, 0, 0, -1.00001, -0.0100001, 0, 0, -1, 0);
+	Ogre::Frustum frst;
+	frst.setFrustumExtents(-1.3911385, 1.24539280, 1.45936251, -1.47835493);
+	frst.setNearClipDistance(0.01);
+	frst.setFarClipDistance(1000);
+	std::cout << frst.getProjectionMatrix() << std::endl;
+	_pCameras[0]->setCustomProjectionMatrix(true, projL);
+	//Ogre::Matrix4 projR(0.757831, 0, -0.057541 0 } row1{0 0.682011 -0.00412136 0 } row2{0 0 -1.00001 -0.0100001 } row3{0 0 0 0 })
 	
 	if(_doneSetup)
 	{
