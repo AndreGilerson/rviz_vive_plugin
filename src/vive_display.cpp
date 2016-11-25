@@ -126,12 +126,10 @@ void ViveDisplay::update(float wall_dt, float ros_dt)
 	
 	std::cout << sev.GetDevicePhsycialIpd(0) << std::endl;
 	Ogre::Matrix4 projL(0.757831, 0, -0.057541, 0, 0, 0.682011, -0.00412136, 0, 0, 0, -1.00001, -0.0100001, 0, 0, -1, 0);
+	Ogre::Matrix4 projR(0.760787, 0, 0.0567596, 0, 0, 0.68434, -0.00340415, 0, 0, 0, -1.00001, -0.0100001, 0, 0, -1, 0);
 	Ogre::Frustum frst;
-	frst.setFrustumExtents(-1.3911385, 1.24539280, 1.45936251, -1.47835493);
-	frst.setNearClipDistance(0.01);
-	frst.setFarClipDistance(1000);
-	std::cout << frst.getProjectionMatrix() << std::endl;
 	_pCameras[0]->setCustomProjectionMatrix(true, projL);
+	_pCameras[1]->setCustomProjectionMatrix(true, projR);
 	//Ogre::Matrix4 projR(0.757831, 0, -0.057541 0 } row1{0 0.682011 -0.00412136 0 } row2{0 0 -1.00001 -0.0100001 } row3{0 0 0 0 })
 	
 	if(_doneSetup)
@@ -220,7 +218,7 @@ Ogre::Matrix4 ViveDisplay::MatSteamVRtoOgre4(vr::HmdMatrix44_t matrix)
 		matrix.m[0][0], matrix.m[0][1], matrix.m[0][2], matrix.m[0][3],
 		matrix.m[1][0], matrix.m[1][1], matrix.m[1][2], matrix.m[1][3],
 		matrix.m[2][0], matrix.m[2][1], matrix.m[2][2], matrix.m[2][3],
-		matrix.m[3][0], matrix.m[3][1], matrix.m[3][0], matrix.m[3][3]
+		matrix.m[3][0], matrix.m[3][1], matrix.m[3][2], matrix.m[3][3]
 		);
 }
 
