@@ -192,7 +192,7 @@ bool ViveDisplay::setupOgre()
 		_pCameras[i]->setPosition((i * 2 - 1) * (g_defaultIPD)*1.5, 0, 0);
 
 		_pViewPorts[i] = _pRenderWindow->addViewport(_pCameras[i], i, 0.5f * i, 0, 0.5f, 1.0f);
-		_pViveRenderWindow->addViewport(_pCameras[i], i, 0.5f * i, 0, 0.5f, 1.0f);
+		Ogre::Viewport* port = _pViveRenderWindow->addViewport(_pCameras[i], i, 0.5f * i, 0, 0.5f, 1.0f);
 		_pViewPorts[i]->setBackgroundColour(g_defaultViewportColour);
 		
 		_pRenderTextures[i] = _renderTextures[i]->getBuffer()->getRenderTarget();
@@ -201,11 +201,12 @@ bool ViveDisplay::setupOgre()
 		_pRenderTextures[i]->getViewport(0)->setBackgroundColour(Ogre::ColourValue::Black);
 		_pRenderTextures[i]->getViewport(0)->setOverlaysEnabled(false);
 		_pRenderTextures[i]->setAutoUpdated(false);
+		
+		Ogre::CompositorInstance* comp = Ogre::CompositorManager::getSingleton().addCompositor(_pViewPorts[i], i ? "DistortionRight" : "DistortionLeft");
+		Ogre::CompositorInstance* comp2 = Ogre::CompositorManager::getSingleton().addCompositor(port, i ? "DistortionRight" : "DistortionLeft");
+		comp->setEnabled(true);
+		comp2->setEnabled(true);
 	}
-	Ogre::CompositorInstance* compLeft = Ogre::CompositorManager::getSingleton().addCompositor(_pViewPorts[0], "DistortionLeft");
-	Ogre::CompositorInstance* compRight = Ogre::CompositorManager::getSingleton().addCompositor(_pViewPorts[1], "DistortionRight");
-	compLeft->setEnabled(true);
-	compRight->setEnabled(true);
 	
 	Ogre::TexturePtr uvLeftRed = Ogre::TextureManager::getSingleton().createManual(
 		"uvLeftRed", Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME,
@@ -290,6 +291,14 @@ bool ViveDisplay::setupOgre()
 	file.open("src/rviz_vive_plugin/src/blueRight.tex", std::ios_base::binary);
 	file.read((char*) blueRightDest, 40642560);
 	file.close();
+	
+	redLeftBuffer->unlock();
+	greenLeftBuffer->unlock();
+	blueLeftBuffer->unlock();
+	
+	redRightBuffer->unlock();
+	greenRightBuffer->unlock();
+	blueRightBuffer->unlock();
 	
 	matLeft->getTechnique(0)->getPass(0)->getTextureUnitState(1)->setTextureName("uvLeftRed");
 	matLeft->getTechnique(0)->getPass(0)->getTextureUnitState(2)->setTextureName("uvLeftGreen");
