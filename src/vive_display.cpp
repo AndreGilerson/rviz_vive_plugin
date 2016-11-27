@@ -206,28 +206,28 @@ bool ViveDisplay::setupOgre()
 	Ogre::TexturePtr uvLeftRed = Ogre::TextureManager::getSingleton().createManual(
 		"uvLeftRed", Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME,
 		Ogre::TEX_TYPE_2D,
-		3024, 3560,, 0, Ogre::PF_FLOAT32_RGBA, Ogre::TU_DEFAULT);
+		3024, 3560, 0, Ogre::PF_FLOAT32_RGBA, Ogre::TU_DEFAULT);
 	Ogre::TexturePtr uvLeftGreen = Ogre::TextureManager::getSingleton().createManual(
 		"uvLeftGreen", Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME,
 		Ogre::TEX_TYPE_2D,
-		3024, 3560,, 0, Ogre::PF_FLOAT32_RGBA, Ogre::TU_DEFAULT);
+		3024, 3560, 0, Ogre::PF_FLOAT32_RGBA, Ogre::TU_DEFAULT);
 	Ogre::TexturePtr uvLeftBlue = Ogre::TextureManager::getSingleton().createManual(
 		"uvLeftBlue", Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME,
 		Ogre::TEX_TYPE_2D,
-		3024, 3560,, 0, Ogre::PF_FLOAT32_RGBA, Ogre::TU_DEFAULT);
+		3024, 3560, 0, Ogre::PF_FLOAT32_RGBA, Ogre::TU_DEFAULT);
 	
 	Ogre::TexturePtr uvRightRed = Ogre::TextureManager::getSingleton().createManual(
 		"uvRightRed", Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME,
 		Ogre::TEX_TYPE_2D,
-		3024, 3560,, 0, Ogre::PF_FLOAT32_RGBA, Ogre::TU_DEFAULT);
+		3024, 3560, 0, Ogre::PF_FLOAT32_RGBA, Ogre::TU_DEFAULT);
 	Ogre::TexturePtr uvRightGreen = Ogre::TextureManager::getSingleton().createManual(
 		"uvRightGreen", Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME,
 		Ogre::TEX_TYPE_2D,
-		3024, 3560,, 0, Ogre::PF_FLOAT32_RGBA, Ogre::TU_DEFAULT);
+		3024, 3560, 0, Ogre::PF_FLOAT32_RGBA, Ogre::TU_DEFAULT);
 	Ogre::TexturePtr uvRightBlue = Ogre::TextureManager::getSingleton().createManual(
 		"uvRightBlue", Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME,
 		Ogre::TEX_TYPE_2D,
-		3024, 3560,, 0, Ogre::PF_FLOAT32_RGBA, Ogre::TU_DEFAULT);
+		3024, 3560, 0, Ogre::PF_FLOAT32_RGBA, Ogre::TU_DEFAULT);
 	
 	Ogre::HardwarePixelBufferSharedPtr redLeftBuffer = uvLeftRed->getBuffer();
 	Ogre::HardwarePixelBufferSharedPtr greenLeftBuffer = uvLeftGreen->getBuffer();

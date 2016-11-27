@@ -1,0 +1,47 @@
+compositor DistortionLeft
+{
+	technique
+	{
+		texture scene 1512 1680 PF_R8G8B8A8
+		
+		target scene
+		{
+			input previous
+		}
+		
+		target_output
+		{
+			input none
+			
+			pass render_quad
+			{
+				material DistortionMaterialLeft
+				input 0 scene
+			}
+		}
+	}
+}
+
+compositor DistortionRight
+{
+	technique
+	{
+		texture scene 1512 1680 PF_R8G8B8A8
+		
+		target scene
+		{
+			input previous
+		}
+		
+		target_output
+		{
+			input none
+			
+			pass render_quad
+			{
+				material DistortionMaterialRight
+				input 0 scene
+			}
+		}
+	}
+}

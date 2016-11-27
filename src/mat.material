@@ -1,0 +1,89 @@
+vertex_program vert glsl
+{
+	source distortion.vert
+}
+
+fragment_program frag glsl
+{
+	source distortion.frag
+}
+
+
+material DistortionMaterialLeft
+{
+	technique
+	{
+		pass
+		{
+			depth_check off
+			
+			vertex_program_ref vert {}
+			fragment_program_ref frag {}
+			
+			texture_unit
+			{
+				tex_coord_set 0
+				tex_address_mode border
+				tex_border_colour 0 0 0
+				filtering linear linear linear
+			}
+			
+			texture_unit
+			{
+				tex_address_mode border
+				tex_border_colour 0 0 0
+			}
+			
+			texture_unit
+			{
+				tex_address_mode border
+				tex_border_colour 0 0 0
+			}
+			
+			texture_unit
+			{
+				tex_address_mode border
+				tex_border_colour 0 0 0
+			}		}
+	}
+}
+
+material DistortionMaterialRight
+{
+	technique
+	{
+		pass
+		{
+			depth_check off
+			
+			vertex_program_ref vert {}
+			fragment_program_ref frag {}
+			
+			texture_unit
+			{
+				tex_coord_set 0
+				tex_address_mode border
+				tex_border_colour 0 0 0
+				filtering linear linear linear
+			}
+			
+			texture_unit
+			{
+				tex_address_mode border
+				tex_border_colour 0 0 0
+			}
+			
+			texture_unit
+			{
+				tex_address_mode border
+				tex_border_colour 0 0 0
+			}
+			
+			texture_unit
+			{
+				tex_address_mode border
+				tex_border_colour 0 0 0
+			}
+		}
+	}
+}
