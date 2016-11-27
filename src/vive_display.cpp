@@ -197,6 +197,103 @@ bool ViveDisplay::setupOgre()
 		_pRenderTextures[i]->getViewport(0)->setOverlaysEnabled(false);
 		_pRenderTextures[i]->setAutoUpdated(false);
 	}
+	Ogre::CompositorInstance* compLeft = Ogre::CompositorManager::getSingleton().addCompositor(_pViewPorts[0], "DistortionLeft");
+	Ogre::CompositorInstance* compRight = Ogre::CompositorManager::getSingleton().addCompositor(_pViewPorts[1], "DistortionRight");
+	compLeft->setEnabled(true);
+	compRight->setEnabled(true);
+	
+	Ogre::TexturePtr uvLeftRed = Ogre::TextureManager::getSingleton().createManual(
+		"uvLeftRed", Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME,
+		Ogre::TEX_TYPE_2D,
+		_vive.GetWidth(), _vive.GetHeight(), 0, Ogre::PF_FLOAT32_RGBA, Ogre::TU_DEFAULT);
+	Ogre::TexturePtr uvLeftGreen = Ogre::TextureManager::getSingleton().createManual(
+		"uvLeftGreen", Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME,
+		Ogre::TEX_TYPE_2D,
+		_vive.GetWidth(), _vive.GetHeight(), 0, Ogre::PF_FLOAT32_RGBA, Ogre::TU_DEFAULT);
+	Ogre::TexturePtr uvLeftBlue = Ogre::TextureManager::getSingleton().createManual(
+		"uvLeftBlue", Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME,
+		Ogre::TEX_TYPE_2D,
+		_vive.GetWidth(), _vive.GetHeight(), 0, Ogre::PF_FLOAT32_RGBA, Ogre::TU_DEFAULT);
+	
+	Ogre::TexturePtr uvRightRed = Ogre::TextureManager::getSingleton().createManual(
+		"uvRightRed", Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME,
+		Ogre::TEX_TYPE_2D,
+		_vive.GetWidth(), _vive.GetHeight(), 0, Ogre::PF_FLOAT32_RGBA, Ogre::TU_DEFAULT);
+	Ogre::TexturePtr uvRightGreen = Ogre::TextureManager::getSingleton().createManual(
+		"uvRightGreen", Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME,
+		Ogre::TEX_TYPE_2D,
+		_vive.GetWidth(), _vive.GetHeight(), 0, Ogre::PF_FLOAT32_RGBA, Ogre::TU_DEFAULT);
+	Ogre::TexturePtr uvRightBlue = Ogre::TextureManager::getSingleton().createManual(
+		"uvRightBlue", Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME,
+		Ogre::TEX_TYPE_2D,
+		_vive.GetWidth(), _vive.GetHeight(), 0, Ogre::PF_FLOAT32_RGBA, Ogre::TU_DEFAULT);
+	
+	Ogre::HardwarePixelBufferSharedPtr redLeftBuffer = uvLeftRed->getBuffer();
+	Ogre::HardwarePixelBufferSharedPtr greenLeftBuffer = uvLeftGreen->getBuffer();
+	Ogre::HardwarePixelBufferSharedPtr blueLeftBuffer = uvLeftBlue->getBuffer();
+	
+	redLeftBuffer->lock(Ogre::HardwareBuffer::HBL_DISCARD);
+	greenLeftBuffer->lock(Ogre::HardwareBuffer::HBL_DISCARD);
+	blueLeftBuffer->lock(Ogre::HardwareBuffer::HBL_DISCARD);
+	
+	const Ogre::PixelBox& redLeftBox = redLeftBuffer->getCurrentLock();
+	const Ogre::PixelBox& greenLeftBox = greenLeftBuffer->getCurrentLock();
+	const Ogre::PixelBox& blueLeftBox = blueLeftBuffer->getCurrentLock();
+	
+	float* redLeftDest = static_cast<float*>(redLeftBox.data);
+	float* greenLeftDest = static_cast<float*>(greenLeftBox.data);
+	float* blueLeftDest = static_cast<float*>(blueLeftBox.data);
+	
+	Ogre::HardwarePixelBufferSharedPtr redRightBuffer = uvRightRed->getBuffer();
+	Ogre::HardwarePixelBufferSharedPtr greenRightBuffer = uvRightGreen->getBuffer();
+	Ogre::HardwarePixelBufferSharedPtr blueRightBuffer = uvRightBlue->getBuffer();
+	
+	redRightBuffer->lock(Ogre::HardwareBuffer::HBL_DISCARD);
+	greenRightBuffer->lock(Ogre::HardwareBuffer::HBL_DISCARD);
+	blueRightBuffer->lock(Ogre::HardwareBuffer::HBL_DISCARD);
+	
+	const Ogre::PixelBox& redRightBox = redRightBuffer->getCurrentLock();
+	const Ogre::PixelBox& greenRightBox = greenRightBuffer->getCurrentLock();
+	const Ogre::PixelBox& blueRightBox = blueRightBuffer->getCurrentLock();
+	
+	float* redRightDest = static_cast<float*>(redRightBox.data);
+	float* greenRightDest = static_cast<float*>(greenRightBox.data);
+	float* blueRightDest = static_cast<float*>(blueRightBox.data);
+	
+	std::ifstream file;
+	
+	file.open("src/rviz_vive_plugin/src/redLeft.tex", std::ios_base::binary);
+	file.read((char*) redLeftDest, 40642560);
+	file.close();
+	
+	file.open("src/rviz_vive_plugin/src/greenLeft.tex", std::ios_base::binary);
+	file.read((char*) greenLeftDest, 40642560);
+	file.close();
+	
+	file.open("src/rviz_vive_plugin/src/blueLeft.tex", std::ios_base::binary);
+	file.read((char*) blueLeftDest, 40642560);
+	file.close();
+	
+	file.open("src/rviz_vive_plugin/src/redRight.tex", std::ios_base::binary);
+	file.read((char*) redRightDest, 40642560);
+	file.close();
+	
+	file.open("src/rviz_vive_plugin/src/greenRight.tex", std::ios_base::binary);
+	file.read((char*) greenRightDest, 40642560);
+	file.close();
+	
+	file.open("src/rviz_vive_plugin/src/blueRight.tex", std::ios_base::binary);
+	file.read((char*) blueRightDest, 40642560);
+	file.close();
+	
+	matLeft->getTechnique(0)->getPass(0)->getTextureUnitState(1)->setTextureName("uvLeftRed");
+	matLeft->getTechnique(0)->getPass(0)->getTextureUnitState(2)->setTextureName("uvLeftGreen");
+	matLeft->getTechnique(0)->getPass(0)->getTextureUnitState(3)->setTextureName("uvLeftBlue");
+	
+	matRight->getTechnique(0)->getPass(0)->getTextureUnitState(1)->setTextureName("uvRightRed");
+	matRight->getTechnique(0)->getPass(0)->getTextureUnitState(2)->setTextureName("uvRightGreen");
+	matRight->getTechnique(0)->getPass(0)->getTextureUnitState(3)->setTextureName("uvRightBlue");
+	
 	Ogre::LogManager::getSingleton().logMessage("Oculus: Oculus setup completed successfully");
 	_doneSetup = true;
 	return true;
