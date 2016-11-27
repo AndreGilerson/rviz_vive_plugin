@@ -71,7 +71,6 @@ void ViveDisplay::onInitialize()
 	_pRenderWidget->setParent(_pDisplayContext->getWindowManager()->getParentWindow());
 	_pRenderWidget->setWindowFlags( Qt::Window | Qt::CustomizeWindowHint | Qt::WindowTitleHint | Qt::WindowMaximizeButtonHint );
 	_pRenderWidget->setVisible(true);
-	//_pRenderWidget->showFullScreen();
 	
 	_pRenderWindow = _pRenderWidget->getRenderWindow();
 	_pRenderWindow->setVisible(true);
@@ -90,7 +89,6 @@ void ViveDisplay::onInitialize()
 	_pViveRenderWidget->setGeometry(QApplication::desktop()->screenGeometry(id));
 	_pViveRenderWindow = _pViveRenderWidget->getRenderWindow();
 	_pViveRenderWidget->showFullScreen();
-	//_vive.Initialize();
 
 	setupOgre();
 }
@@ -129,7 +127,6 @@ void ViveDisplay::update(float wall_dt, float ros_dt)
 	Ogre::Frustum frst;
 	_pCameras[0]->setCustomProjectionMatrix(true, projL);
 	_pCameras[1]->setCustomProjectionMatrix(true, projR);
-	//Ogre::Matrix4 projR(0.757831, 0, -0.057541 0 } row1{0 0.682011 -0.00412136 0 } row2{0 0 -1.00001 -0.0100001 } row3{0 0 0 0 })
 	
 	if(_doneSetup)
 	{
@@ -145,7 +142,6 @@ void ViveDisplay::reset()
 
 bool ViveDisplay::setupOgre()
 {
-	Ogre::LogManager::getSingleton().logMessage("Oculus: Setting up Ogre");
 	if (_pSceneNode)
 		_pCameraNode = _pSceneNode->createChildSceneNode("StereoCameraNode");
 	else
@@ -308,7 +304,6 @@ bool ViveDisplay::setupOgre()
 	matRight->getTechnique(0)->getPass(0)->getTextureUnitState(2)->setTextureName("uvRightGreen");
 	matRight->getTechnique(0)->getPass(0)->getTextureUnitState(3)->setTextureName("uvRightBlue");
 	
-	Ogre::LogManager::getSingleton().logMessage("Oculus: Oculus setup completed successfully");
 	_doneSetup = true;
 	return true;
 }
