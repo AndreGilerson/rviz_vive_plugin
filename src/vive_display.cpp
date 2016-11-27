@@ -155,26 +155,27 @@ bool ViveDisplay::setupOgre()
 	_pCameras[0] = _pSceneManager->createCamera("CameraLeft");
 	_pCameras[1] = _pSceneManager->createCamera("CameraRight");
 	
+	Ogre::MaterialPtr matLeft = Ogre::MaterialManager::getSingleton().getByName("DistortionMaterialLeft");
+	matLeft->getTechnique(0)->getPass(0)->getFragmentProgramParameters()->setNamedConstant("InputTexture", 0);
+	matLeft->getTechnique(0)->getPass(0)->getFragmentProgramParameters()->setNamedConstant("DistortionTextureRed", 1);
+	matLeft->getTechnique(0)->getPass(0)->getFragmentProgramParameters()->setNamedConstant("DistortionTextureGreen", 2);
+	matLeft->getTechnique(0)->getPass(0)->getFragmentProgramParameters()->setNamedConstant("DistortionTextureBlue", 3);
 	
-	/*_renderTextures[0]= Ogre::TextureManager::getSingleton().createManual(
-		"RenderTexture1", Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME,
-		Ogre::TEX_TYPE_2D,
-		_vive.GetWidth(), _vive.GetHeight(), 0, Ogre::PF_R8G8B8A8, Ogre::TU_RENDERTARGET);
-	_renderTextures[1] = Ogre::TextureManager::getSingleton().createManual(
-		"RenderTexture2", Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME,
-		Ogre::TEX_TYPE_2D,
-		_vive.GetWidth(), _vive.GetHeight(), 0, Ogre::PF_R8G8B8A8, Ogre::TU_RENDERTARGET);*/
+	Ogre::MaterialPtr matRight = Ogre::MaterialManager::getSingleton().getByName("DistortionMaterialRight");
+	matRight->getTechnique(0)->getPass(0)->getFragmentProgramParameters()->setNamedConstant("InputTexture", 0);
+	matRight->getTechnique(0)->getPass(0)->getFragmentProgramParameters()->setNamedConstant("DistortionTextureRed", 1);
+	matRight->getTechnique(0)->getPass(0)->getFragmentProgramParameters()->setNamedConstant("DistortionTextureGreen", 2);
+	matRight->getTechnique(0)->getPass(0)->getFragmentProgramParameters()->setNamedConstant("DistortionTextureBlue", 3);
+	
 		
-		_renderTextures[0]= Ogre::TextureManager::getSingleton().createManual(
+	_renderTextures[0]= Ogre::TextureManager::getSingleton().createManual(
 		"RenderTexture1", Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME,
 		Ogre::TEX_TYPE_2D,
-		1080, 1200, 0, Ogre::PF_R8G8B8A8, Ogre::TU_RENDERTARGET);
+		3024, 3560, 0, Ogre::PF_R8G8B8A8, Ogre::TU_RENDERTARGET);
 	_renderTextures[1] = Ogre::TextureManager::getSingleton().createManual(
 		"RenderTexture2", Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME,
 		Ogre::TEX_TYPE_2D,
-		1080, 1200, 0, Ogre::PF_R8G8B8A8, Ogre::TU_RENDERTARGET);
-	
-	Ogre::MaterialPtr matLeft = Ogre::MaterialManager::getSingleton().getByName("Ogre/Compositor/Oculus");
+		3024, 3560, 0, Ogre::PF_R8G8B8A8, Ogre::TU_RENDERTARGET);
 	
 	for (int i = 0; i < 2; ++i)
 	{
@@ -205,28 +206,28 @@ bool ViveDisplay::setupOgre()
 	Ogre::TexturePtr uvLeftRed = Ogre::TextureManager::getSingleton().createManual(
 		"uvLeftRed", Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME,
 		Ogre::TEX_TYPE_2D,
-		_vive.GetWidth(), _vive.GetHeight(), 0, Ogre::PF_FLOAT32_RGBA, Ogre::TU_DEFAULT);
+		3024, 3560,, 0, Ogre::PF_FLOAT32_RGBA, Ogre::TU_DEFAULT);
 	Ogre::TexturePtr uvLeftGreen = Ogre::TextureManager::getSingleton().createManual(
 		"uvLeftGreen", Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME,
 		Ogre::TEX_TYPE_2D,
-		_vive.GetWidth(), _vive.GetHeight(), 0, Ogre::PF_FLOAT32_RGBA, Ogre::TU_DEFAULT);
+		3024, 3560,, 0, Ogre::PF_FLOAT32_RGBA, Ogre::TU_DEFAULT);
 	Ogre::TexturePtr uvLeftBlue = Ogre::TextureManager::getSingleton().createManual(
 		"uvLeftBlue", Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME,
 		Ogre::TEX_TYPE_2D,
-		_vive.GetWidth(), _vive.GetHeight(), 0, Ogre::PF_FLOAT32_RGBA, Ogre::TU_DEFAULT);
+		3024, 3560,, 0, Ogre::PF_FLOAT32_RGBA, Ogre::TU_DEFAULT);
 	
 	Ogre::TexturePtr uvRightRed = Ogre::TextureManager::getSingleton().createManual(
 		"uvRightRed", Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME,
 		Ogre::TEX_TYPE_2D,
-		_vive.GetWidth(), _vive.GetHeight(), 0, Ogre::PF_FLOAT32_RGBA, Ogre::TU_DEFAULT);
+		3024, 3560,, 0, Ogre::PF_FLOAT32_RGBA, Ogre::TU_DEFAULT);
 	Ogre::TexturePtr uvRightGreen = Ogre::TextureManager::getSingleton().createManual(
 		"uvRightGreen", Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME,
 		Ogre::TEX_TYPE_2D,
-		_vive.GetWidth(), _vive.GetHeight(), 0, Ogre::PF_FLOAT32_RGBA, Ogre::TU_DEFAULT);
+		3024, 3560,, 0, Ogre::PF_FLOAT32_RGBA, Ogre::TU_DEFAULT);
 	Ogre::TexturePtr uvRightBlue = Ogre::TextureManager::getSingleton().createManual(
 		"uvRightBlue", Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME,
 		Ogre::TEX_TYPE_2D,
-		_vive.GetWidth(), _vive.GetHeight(), 0, Ogre::PF_FLOAT32_RGBA, Ogre::TU_DEFAULT);
+		3024, 3560,, 0, Ogre::PF_FLOAT32_RGBA, Ogre::TU_DEFAULT);
 	
 	Ogre::HardwarePixelBufferSharedPtr redLeftBuffer = uvLeftRed->getBuffer();
 	Ogre::HardwarePixelBufferSharedPtr greenLeftBuffer = uvLeftGreen->getBuffer();
