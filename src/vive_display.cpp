@@ -111,12 +111,18 @@ void ViveDisplay::update(float wall_dt, float ros_dt)
 	
 	if(sev.IsRdy())
 	{
-		pos = sev.GetDeviceTranslation(0);
-		ori = sev.GetDeviceRotation(0);
-	
-		_pCameraNode->setPosition(pos);
+		/*Ogre::Matrix4 matWorld(sev.GetDeviceWorldRotation(0));
+		matWorld.setTrans(sev.GetDeviceWorldTranslation(0));
+		Ogre::Matrix4 matDevice(sev.GetDeviceRotation(0));
+		matDevice.setTrans(sev.GetDeviceTranslation(0));
+		
+		matWorld = matWorld*matDevice;
+		pos = matWorld.getTrans();
+		ori = matWorld.extractQuaternion();*/
+		
+		ori = sev.GetDeviceWorldRotation(0).Inverse() * sev.GetDeviceRotation(0);
+		ori = Ogre::Quaternion(ori.w, ori.x, -ori.y, -ori.z);
 		_pCameraNode->setOrientation(ori);
-		_pCameraNode->roll(Ogre::Radian(M_PI));
 		
 		_pCameras[0]->setPosition((- 1) * (sev.GetDevicePhsycialIpd(0))*0.5, 0, 0.015);
 		_pCameras[1]->setPosition((sev.GetDevicePhsycialIpd(0))*0.5, 0, 0.015);

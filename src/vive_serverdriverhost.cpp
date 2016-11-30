@@ -193,11 +193,23 @@ void ServerDriverHost::TrackedDevicePoseUpdated(uint32_t unWhichDevice,const vr:
 		{
 			state.connected=true;
 		}
-			_rdy = 1;
+			if(!_rdy)
+			{
+				_rdy = 1;
+				_zeroRotation = newPose.qRotation;
+				_zeroTranslation[0] = newPose.vecPosition[0];
+				_zeroTranslation[1] = newPose.vecPosition[1];
+				_zeroTranslation[2] = newPose.vecPosition[2];
+			}
 			state._rotation = newPose.qRotation;
 			state._translation[0] = newPose.vecPosition[0];
 			state._translation[1] = newPose.vecPosition[1];
 			state._translation[2] = newPose.vecPosition[2];
+			
+			state._wRotation = newPose.qWorldFromDriverRotation;
+			state._wTranslation[0] = newPose.vecWorldFromDriverTranslation[0];
+			state._wTranslation[1] = newPose.vecWorldFromDriverTranslation[1];
+			state._wTranslation[2] = newPose.vecWorldFromDriverTranslation[2];
 	}
 	else
 	{
@@ -328,6 +340,18 @@ Ogre::Vector3 ServerDriverHost::GetDeviceTranslation(uint32_t unWhichDevice)
 {
 	return Ogre::Vector3(deviceStates[unWhichDevice]._translation[0], deviceStates[unWhichDevice]._translation[1],
 						deviceStates[unWhichDevice]._translation[2]);
+}
+
+Ogre::Quaternion ServerDriverHost::GetDeviceWorldRotation(uint32_t unWhichDevice)
+{
+	return Ogre::Quaternion(_zeroRotation.w, _zeroRotation.x,
+							_zeroRotation.y, _zeroRotation.z);
+}
+
+Ogre::Vector3 ServerDriverHost::GetDeviceWorldTranslation(uint32_t unWhichDevice)
+{
+	return Ogre::Vector3(_zeroTranslation[0], _zeroTranslation[1],
+						_zeroTranslation[2]);
 }
 
 float ServerDriverHost::GetDevicePhsycialIpd(uint32_t unWhichDevice)
