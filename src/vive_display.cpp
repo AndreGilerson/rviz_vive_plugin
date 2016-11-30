@@ -89,7 +89,8 @@ void ViveDisplay::onInitialize()
 	_pViveRenderWidget->setGeometry(QApplication::desktop()->screenGeometry(id));
 	_pViveRenderWindow = _pViveRenderWidget->getRenderWindow();
 	_pViveRenderWidget->showFullScreen();
-
+	_pViveRenderWindow->setAutoUpdated(false);
+	//_pViveRenderWindow->setVSyncEnabled(true);
 	setupOgre();
 }
 
@@ -110,19 +111,13 @@ void ViveDisplay::update(float wall_dt, float ros_dt)
 	_pSceneNode->setPosition(pos);
 	
 	if(sev.IsRdy())
-	{
-		/*Ogre::Matrix4 matWorld(sev.GetDeviceWorldRotation(0));
-		matWorld.setTrans(sev.GetDeviceWorldTranslation(0));
-		Ogre::Matrix4 matDevice(sev.GetDeviceRotation(0));
-		matDevice.setTrans(sev.GetDeviceTranslation(0));
-		
-		matWorld = matWorld*matDevice;
-		pos = matWorld.getTrans();
-		ori = matWorld.extractQuaternion();*/
-		
-		ori = sev.GetDeviceWorldRotation(0).Inverse() * sev.GetDeviceRotation(0);
+	{		
+		ori = sev.GetDeviceZeroRotation(0).Inverse() * sev.GetDeviceRotation(0);
 		ori = Ogre::Quaternion(ori.w, ori.x, -ori.y, -ori.z);
 		_pCameraNode->setOrientation(ori);
+		
+		pos = sev.GetDeviceZeroTranslation(0) - sev.GetDeviceTranslation(0);
+		_pCameraNode->setPosition(pos);
 		
 		_pCameras[0]->setPosition((- 1) * (sev.GetDevicePhsycialIpd(0))*0.5, 0, 0.015);
 		_pCameras[1]->setPosition((sev.GetDevicePhsycialIpd(0))*0.5, 0, 0.015);
@@ -134,11 +129,6 @@ void ViveDisplay::update(float wall_dt, float ros_dt)
 	_pCameras[0]->setCustomProjectionMatrix(true, projL);
 	_pCameras[1]->setCustomProjectionMatrix(true, projR);
 	
-	if(_doneSetup)
-	{
-		_pRenderTextures[0]->update();
-		_pRenderTextures[1]->update();
-	}
 	_pRenderWindow->update(true);
 	_pViveRenderWindow->update(true);
 }
@@ -194,15 +184,10 @@ bool ViveDisplay::setupOgre()
 		_pCameras[i]->setPosition((i * 2 - 1) * (g_defaultIPD)*1.5, 0, 0);
 
 		_pViewPorts[i] = _pRenderWindow->addViewport(_pCameras[i], i, 0.5f * i, 0, 0.5f, 1.0f);
+		_pViewPorts[i]->setClearEveryFrame(true);
 		Ogre::Viewport* port = _pViveRenderWindow->addViewport(_pCameras[i], i, 0.5f * i, 0, 0.5f, 1.0f);
+		port->setClearEveryFrame(true);
 		_pViewPorts[i]->setBackgroundColour(g_defaultViewportColour);
-		
-		_pRenderTextures[i] = _renderTextures[i]->getBuffer()->getRenderTarget();
-		_pRenderTextures[i]->addViewport(_pCameras[i]);
-		_pRenderTextures[i]->getViewport(0)->setClearEveryFrame(true);
-		_pRenderTextures[i]->getViewport(0)->setBackgroundColour(Ogre::ColourValue::Black);
-		_pRenderTextures[i]->getViewport(0)->setOverlaysEnabled(false);
-		_pRenderTextures[i]->setAutoUpdated(false);
 		
 		Ogre::CompositorInstance* comp = Ogre::CompositorManager::getSingleton().addCompositor(_pViewPorts[i], i ? "DistortionRight" : "DistortionLeft");
 		Ogre::CompositorInstance* comp2 = Ogre::CompositorManager::getSingleton().addCompositor(port, i ? "DistortionRight" : "DistortionLeft");

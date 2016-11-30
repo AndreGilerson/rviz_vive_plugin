@@ -24,8 +24,6 @@ public:
 		
 		vr::HmdQuaternion_t _rotation;
 		double _translation[3];
-		vr::HmdQuaternion_t _wRotation;
-		double _wTranslation[3];
 		/* Constructors and destructors: */
 		DeviceState(void)
 			:driver(0),connected(false),
@@ -56,8 +54,8 @@ public:
 	Ogre::Quaternion GetDeviceRotation(uint32_t unWhichDevice);
 	Ogre::Vector3 GetDeviceTranslation(uint32_t unWhichDevice);
 	
-	Ogre::Quaternion GetDeviceWorldRotation(uint32_t unWhichDevice);
-	Ogre::Vector3 GetDeviceWorldTranslation(uint32_t unWhichDevice);
+	Ogre::Quaternion GetDeviceZeroRotation(uint32_t unWhichDevice);
+	Ogre::Vector3 GetDeviceZeroTranslation(uint32_t unWhichDevice);
 
 	float GetDevicePhsycialIpd(uint32_t unWhichDevice);
 	bool IsRdy();
