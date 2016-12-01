@@ -1,12 +1,6 @@
-## BEGIN_TUTORIAL
-## This CMakeLists.txt file for rviz_plugin_tutorials builds both the
-## TeleopPanel tutorial and the ImuDisplay tutorial.
-##
-## First start with some standard catkin stuff.
 cmake_minimum_required(VERSION 3.1.0)
 project(rviz_vive_plugin)
 
-## AGN: Find SDL2 Library
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "./cmake")
 find_package(SDL2 REQUIRED)
 message(STATUS "Found SDL at ${SDL2_INCLUDE_DIR}")
@@ -14,8 +8,6 @@ include_directories(${SDL2_INCLUDE_DIR})
 
 ##Hardcoded OpenVR Path please change
 set(OPENVR "~/agn/openvr")
-find_library(OPENVR_LIB openvr_api "${OPENVR}/lib/linux64" NO_DEFAULT_PATH)
-MESSAGE (STATUS "Found libopenvr_api: ${OPENVR_LIB}")
 include_directories("${OPENVR}/headers" "${OPENVR}/samples")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 ")
 
@@ -49,7 +41,6 @@ add_definitions(-DQT_NO_KEYWORDS)
 ## The generated MOC files are included automatically as headers.
 set(SRC_FILES
   src/vive_display.cpp
-  src/vive_openvr.cpp
   src/vive_driver.cpp
   src/vive_serverdriverhost.cpp
 )

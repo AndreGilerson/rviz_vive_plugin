@@ -5,12 +5,16 @@
 #include "rviz/display.h"
 #endif
 
+#include <QObject>
+
 #include <OGRE/OgreTexture.h>
 #include <OGRE/RenderSystems/GL/OgreGLTexture.h>
 
 #include "openvr_driver.h"
 
 #include "vive_serverdriverhost.h"
+
+
 namespace Ogre
 {
 class SceneNode;
@@ -28,9 +32,6 @@ class RenderWidget;
 class DisplayContext;
 class TfFrameProperty;
 }
-
-#include <QObject>
-//#include "vive_openvr.h"
 
 namespace rviz_vive_plugin
 {
@@ -52,9 +53,6 @@ private:
 	bool setupOgre();
 	Ogre::Matrix4 MatSteamVRtoOgre4(vr::HmdMatrix34_t matrix);
 	Ogre::Matrix4 MatSteamVRtoOgre4(vr::HmdMatrix44_t matrix);
-	
-	
-	//ViveOpenVR _vive;
 
 	rviz::RenderWidget* _pRenderWidget;
 	rviz::RenderWidget* _pViveRenderWidget;
@@ -64,18 +62,13 @@ private:
 	Ogre::SceneManager* _pSceneManager;
 	Ogre::RenderWindow* _pRenderWindow;
 	Ogre::RenderWindow* _pViveRenderWindow;
-	Ogre::Viewport* _pViewPorts[2];
 	Ogre::Camera* _pCameras[2];
-	Ogre::CompositorInstance* _pCompositors[2];
 	
 	Ogre::TexturePtr _renderTextures[2];
 	Ogre::RenderTexture* _pRenderTextures[2];
 	
-	rviz::TfFrameProperty* _pTfFrameProperty;
 	rviz::BoolProperty* _pTranslationProperty;
 	rviz::BoolProperty* _pOrientationProperty;
-	
-	Ogre::Matrix4 _prevPose;
 	
 	bool _doneSetup;
 	

@@ -1,5 +1,4 @@
 #include "vive_display.h"
-//#include "vive_openvr.h"
 
 #include <OGRE/OgreRoot.h>
 #include <OGRE/OgreSceneNode.h>
@@ -24,19 +23,10 @@
 #include <QApplication>
 #include <QDesktopWidget>
 
-#include <cstdlib>
-#include <dlfcn.h>
-
 namespace rviz_vive_plugin
 {	
 	
-const float g_defaultNearClip = 0.01f;
-const float g_defaultFarClip = 1000.0f;
 const float g_defaultIPD = 0.064f;
-const Ogre::ColourValue g_defaultViewportColour(97 / 255.0f, 97 / 255.0f, 200 / 255.0f);
-const float g_defaultProjectionCentreOffset = 0.14529906f;
-const float g_defaultDistortion[4] = {1.0f, 0.22f, 0.24f, 0.0f};
-const float g_defaultChromAb[4] = {0.996, -0.004, 1.014, 0.0f};
 	
 ViveDisplay::ViveDisplay() : _pRenderWidget(0),
 _pDisplayContext(0),
@@ -44,8 +34,6 @@ _pSceneNode(0),
 _pSceneManager(0),
 _pRenderWindow(0)
 {
-	_pViewPorts[0] = 0;
-	_pViewPorts[1] = 0;
 	_pCameras[0] = 0;
 	_pCameras[1] = 0;
 }
@@ -57,8 +45,6 @@ ViveDisplay::~ViveDisplay()
 
 void ViveDisplay::onInitialize()
 {
-	_pTfFrameProperty = new rviz::TfFrameProperty( "Target Frame", "<Fixed Frame>",
-	"Tf frame that the Oculus camera should follow.", this, context_->getFrameManager(), true );
 	_pTranslationProperty = new rviz::BoolProperty("Fixed Position", false, 
 	"If checked will ignore translation of HTC Vive", this);
 	_pOrientationProperty = new rviz::BoolProperty("Fixed Orientation", false,
@@ -66,6 +52,8 @@ void ViveDisplay::onInitialize()
 	
 	_pSceneManager = scene_manager_; //Random global pointer by RVIZ
 	_pDisplayContext = context_;
+	_pSceneNode = _pSceneManager->getRootSceneNode()->createChildSceneNode();
+	
 	_pRenderWidget = new rviz::RenderWidget(rviz::RenderSystem::get());
 	_pRenderWidget->setWindowTitle("Vive View");
 	_pRenderWidget->setParent(_pDisplayContext->getWindowManager()->getParentWindow());
@@ -75,7 +63,6 @@ void ViveDisplay::onInitialize()
 	_pRenderWindow = _pRenderWidget->getRenderWindow();
 	_pRenderWindow->setVisible(true);
 	_pRenderWindow->setAutoUpdated(false);
-	_pSceneNode = _pSceneManager->getRootSceneNode()->createChildSceneNode();
 	
 	std::cout << QApplication::desktop()->screenCount() << std::endl;
 	int id = 0;
@@ -87,10 +74,11 @@ void ViveDisplay::onInitialize()
 	
 	_pViveRenderWidget = new rviz::RenderWidget(rviz::RenderSystem::get());
 	_pViveRenderWidget->setGeometry(QApplication::desktop()->screenGeometry(id));
-	_pViveRenderWindow = _pViveRenderWidget->getRenderWindow();
 	_pViveRenderWidget->showFullScreen();
+	
+	_pViveRenderWindow = _pViveRenderWidget->getRenderWindow();
 	_pViveRenderWindow->setAutoUpdated(false);
-	//_pViveRenderWindow->setVSyncEnabled(true);
+	
 	setupOgre();
 }
 
@@ -100,37 +88,36 @@ void ViveDisplay::update(float wall_dt, float ros_dt)
 	
 	Ogre::Vector3 pos;
 	Ogre::Quaternion ori;
-	
-	_pDisplayContext->getFrameManager()->getTransform( _pTfFrameProperty->getStdString(),
-													ros::Time(), pos, ori );
-    Ogre::Camera *cam = _pDisplayContext->getViewManager()->getCurrent()->getCamera();
-    pos = cam->getDerivedPosition();
-    ori = cam->getDerivedOrientation();
+	Ogre::Camera *cam = _pDisplayContext->getViewManager()->getCurrent()->getCamera();
+	pos = cam->getDerivedPosition();
+	ori = cam->getDerivedOrientation();
 	
 	_pSceneNode->setOrientation(ori);
 	_pSceneNode->setPosition(pos);
 	
 	if(sev.IsRdy())
 	{		
-		ori = sev.GetDeviceZeroRotation(0).Inverse() * sev.GetDeviceRotation(0);
-		ori = Ogre::Quaternion(ori.w, ori.x, -ori.y, -ori.z);
-		_pCameraNode->setOrientation(ori);
+		if(!_pTranslationProperty->getBool())
+		{
+			pos = sev.GetDeviceZeroTranslation(0) - sev.GetDeviceTranslation(0);
+			pos.y = -pos.y;
+			_pCameraNode->setPosition(pos*5);
+		}
 		
-		pos = sev.GetDeviceZeroTranslation(0) - sev.GetDeviceTranslation(0);
-		_pCameraNode->setPosition(pos);
+		if(!_pOrientationProperty->getBool())
+		{
+			ori = sev.GetDeviceZeroRotation(0).Inverse() * sev.GetDeviceRotation(0);
+			ori = Ogre::Quaternion(ori.w, ori.x, -ori.y, -ori.z);
+			_pCameraNode->setOrientation(ori);
+		}
 		
 		_pCameras[0]->setPosition((- 1) * (sev.GetDevicePhsycialIpd(0))*0.5, 0, 0.015);
 		_pCameras[1]->setPosition((sev.GetDevicePhsycialIpd(0))*0.5, 0, 0.015);
 	}
 	
-	Ogre::Matrix4 projL(0.757831, 0, -0.057541, 0, 0, 0.682011, -0.00412136, 0, 0, 0, -1.00001, -0.0100001, 0, 0, -1, 0);
-	Ogre::Matrix4 projR(0.760787, 0, 0.0567596, 0, 0, 0.68434, -0.00340415, 0, 0, 0, -1.00001, -0.0100001, 0, 0, -1, 0);
-	Ogre::Frustum frst;
-	_pCameras[0]->setCustomProjectionMatrix(true, projL);
-	_pCameras[1]->setCustomProjectionMatrix(true, projR);
-	
 	_pRenderWindow->update(true);
 	_pViveRenderWindow->update(true);
+	
 }
 
 void ViveDisplay::reset()
@@ -183,17 +170,22 @@ bool ViveDisplay::setupOgre()
 		_pCameras[i]->setAutoAspectRatio(true);
 		_pCameras[i]->setPosition((i * 2 - 1) * (g_defaultIPD)*1.5, 0, 0);
 
-		_pViewPorts[i] = _pRenderWindow->addViewport(_pCameras[i], i, 0.5f * i, 0, 0.5f, 1.0f);
-		_pViewPorts[i]->setClearEveryFrame(true);
-		Ogre::Viewport* port = _pViveRenderWindow->addViewport(_pCameras[i], i, 0.5f * i, 0, 0.5f, 1.0f);
+		Ogre::Viewport* port = _pRenderWindow->addViewport(_pCameras[i], i, 0.5f * i, 0, 0.5f, 1.0f);
 		port->setClearEveryFrame(true);
-		_pViewPorts[i]->setBackgroundColour(g_defaultViewportColour);
-		
-		Ogre::CompositorInstance* comp = Ogre::CompositorManager::getSingleton().addCompositor(_pViewPorts[i], i ? "DistortionRight" : "DistortionLeft");
-		Ogre::CompositorInstance* comp2 = Ogre::CompositorManager::getSingleton().addCompositor(port, i ? "DistortionRight" : "DistortionLeft");
+		port->setBackgroundColour(Ogre::ColourValue::Blue);
+		Ogre::CompositorInstance* comp = Ogre::CompositorManager::getSingleton().addCompositor(port, i ? "DistortionRight" : "DistortionLeft");
 		comp->setEnabled(true);
-		comp2->setEnabled(true);
+		
+		port = _pViveRenderWindow->addViewport(_pCameras[i], i, 0.5f * i, 0, 0.5f, 1.0f);
+		port->setClearEveryFrame(true);
+		comp = Ogre::CompositorManager::getSingleton().addCompositor(port, i ? "DistortionRight" : "DistortionLeft");
+		comp->setEnabled(true);
 	}
+	
+	Ogre::Matrix4 projL(0.757831, 0, -0.057541, 0, 0, 0.682011, -0.00412136, 0, 0, 0, -1.00001, -0.0100001, 0, 0, -1, 0);
+	Ogre::Matrix4 projR(0.760787, 0, 0.0567596, 0, 0, 0.68434, -0.00340415, 0, 0, 0, -1.00001, -0.0100001, 0, 0, -1, 0);
+	_pCameras[0]->setCustomProjectionMatrix(true, projL);
+	_pCameras[1]->setCustomProjectionMatrix(true, projR);
 	
 	Ogre::TexturePtr uvLeftRed = Ogre::TextureManager::getSingleton().createManual(
 		"uvLeftRed", Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME,

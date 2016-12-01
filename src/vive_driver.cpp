@@ -14,7 +14,6 @@ void DriverLog::Log(const char* pchLogMessage)
 
 
 
-
 VRSettings::VRSettings()
 {
 }

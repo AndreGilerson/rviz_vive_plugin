@@ -71,7 +71,7 @@ int SDL_GetDisplayBounds(int displayIndex,SDL_Rect* rect)
 
 const char* SDL_GetDisplayName(int displayIndex)
 {
-	return "HTC Vive 5\"";
+	return "HTC Vive\"";
 }
 
 
