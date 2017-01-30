@@ -1,3 +1,8 @@
+/************************************************************************
+This file is heavily influeced (and partly lifted) from the VRUI Toolkit
+by Olive Kreylos. Check out http://idav.ucdavis.edu/~okreylos/ResDev/Vrui/
+***********************************************************************/
+
 #ifndef VIVE_DRIVER_H
 #define VIVE_DRIVER_H
 
