@@ -97,5 +97,5 @@ void VRSettings::RemoveSection(const char* pchSection,vr::EVRSettingsError* peEr
 void VRSettings::RemoveKeyInSection(const char* pchSection,const char* pchSettingsKey,vr::EVRSettingsError* peError)
 {
 	if(peError!=0)
-		*peError=vr::VRSettingsError_None;
+		*peError=vr::VRSettingsError_None; 
 }

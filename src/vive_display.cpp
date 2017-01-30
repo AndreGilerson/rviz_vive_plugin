@@ -75,9 +75,9 @@ void ViveDisplay::onInitialize()
 	_pViveRenderWidget = new rviz::RenderWidget(rviz::RenderSystem::get());
 	_pViveRenderWidget->setGeometry(QApplication::desktop()->screenGeometry(id));
 	_pViveRenderWidget->showFullScreen();
-	
 	_pViveRenderWindow = _pViveRenderWidget->getRenderWindow();
 	_pViveRenderWindow->setAutoUpdated(false);
+	_pViveRenderWindow->setVSyncEnabled(true);
 	
 	setupOgre();
 }
@@ -116,8 +116,8 @@ void ViveDisplay::update(float wall_dt, float ros_dt)
 	}
 	
 	_pRenderWindow->update(true);
-	_pViveRenderWindow->update(true);
-	
+	_pViveRenderWindow->update(false);
+	_pViveRenderWindow->swapBuffers();
 }
 
 void ViveDisplay::reset()

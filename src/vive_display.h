@@ -14,7 +14,6 @@
 
 #include "vive_serverdriverhost.h"
 
-
 namespace Ogre
 {
 class SceneNode;
