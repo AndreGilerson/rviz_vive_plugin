@@ -1,8 +1,8 @@
 #!/bin/bash
 
-export openvr=~/agn/openvr
-export steamvr=~/.local/share/Steam/steamapps/common/SteamVR
-export steamruntimesmall= ~/agn/steamruntime
+export openvr=~/sse/openvr
+export steamvr=~/.steam/steam/steamapps/common/SteamVR
+export steamruntimesmall=~/sse/steamruntime
 
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:\
 /usr/lib/:\
