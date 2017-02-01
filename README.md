@@ -4,31 +4,50 @@
 
 This Plugins allows RVIZ to render to the HTC Vive, using [OGRE](http://www.ogre3d.org/). This Plugin was developed and tested on Ubuntu 16.04, 64 bit, with a GTX 1080, and Nvidia 375.26 graphic drivers. 
 
-##Known Issues
+As of February 1st, 2017 the Vive does not officially support Linux yet. Altough linux builds of SteamVR and OpenVR are available, theyre not fully functional. Ubuntu does recognize the Vive as an additional screen. This plugin renders to a window on that screen and uses parts of SteamVR and OpenVr to implement headtracking.
+
+##1.0 Known Issues
 While using Ubuntu with the Unity desktop environment, the plugin cant Vsync with the Vive unless the Vive window has input focus. This is due to some issues with Compiz. It is therefore recommended to use Ubuntu with GNOME. To install GNOME on your system open up a terminal and *sudo apt-get install ubuntu-gnome-desktop*. Reboot and choose the GNOME desktop environment in the login screen.
 
-##Requirements
-* Roboter Operating System (ROS) (tested with desktop-full install [kinetic](http://wiki.ros.org/kinetic/Installation/Ubuntu))
-* OpenVR (tested with [OpenVR SDK 1.0.5](Roboter Operating System (ROS) [kinetic](http://wiki.ros.org/kinetic/Installation/Ubuntu)))
-* SteamVR (available through the [Steam client](http://store.steampowered.com/about/), tested with Build ID 1525252)
+##2.0 Requirements
 
+###2.1 Dependencies
+Approriate drivers for your graphisc card, SDL2 and GLEW. Furthermore git is recommended, for downloading and updating other packages.
+* *sudo apt-get install git libsdl2-dev libglew-dev*
 
-##Build Instructions
+###2.2 Getting the Robot Operating System (ROS)
+To install ROS please follow the instructions provided here [ROS kinetic](http://wiki.ros.org/kinetic/Installation/Ubuntu). This plugin was developed using the *desktop-full* install. After installing ROS, install catkin:
+* *sudo apt-get install catkin*
+
+###2.3 Getting OpenVR
+OpenVR can be cloned from the official [OpenVR Github](https://github.com/ValveSoftware/openvr) repository:
+* *git clone https://github.com/ValveSoftware/openvr*
+This plugin was developed using OpenVR SDK v1.0.5. Later versions might brake the plugin.
+* *cd openvr*
+* *git checkout v1.0.5*
+
+###2.4 Getting SteamVR
+Install the steam client (*sudo apt-get install steam*) and download SteamVR. Then, right click on the SteamVR entry, navigate to *Properties -> Local Files -> Browse Local Files* and note the path. The plugin was developed using the SteamVR build from January 3rd, 2017. Later versions might brake the plugin. To get older versions of SteamVR, install the Steam command line tool: *sudo apt-get install steamcmd*. Start it with *steamcmd* and use following command:
+* *download_depot 250820 250823 1008772584334738762*
+This downloads the SteamVR build from January 3rd, 2017. 250820 is the ID of SteamVR, 250823 the ID of the linux depot, and 1008772584334738762 the ID of the correct build. The command line tool will output the path, where it has downloaded the files to. Copy the files into the SteamVR directory you noted earlier. Merge and replace existing files.
+
+##3.0 Build Instructions
 The Plugin is build using [catkin](http://wiki.ros.org/catkin). You have to create a catkin workspace first. Open up a terminal and:
 
 * *mkdir -p catkin_ws/src*
 * *cd catkin_ws/src*
 * *catkin_init_worksspace*
 
-Then place the *rviz_vive_plugin* folder inside of *catkin_ws/src*. Open the *CMakeList.txt* file inside of the *rviz_vive_plugin* folder and change the Path to OpenVR in line 10. You can then build the plugin by navigating to *catkin_ws* and executing *catkin_make*.
+Clone this repository into *catkin_ws/src*. Open the *CMakeList.txt* file inside of the *rviz_vive_plugin* folder and change the Path to the OpenVR repository from part 2.3 in line 10. You can then build the plugin by navigating to *catkin_ws* and executing *catkin_make* in a terminal.
 
-##Running the Plugin
-A few steps have to be taken before running the Plugin. First of all, Steam supplies some runtime libraries which are used by SteamVR. Some of those are older versions of commenly used libraries, some of which break RVIZ. Luckily SteamVR does not require those specific libraries, and we can therefore create a folder containing only the required libraries, and add that folder to the *LD_LIBRARY_PATH*. The Steam runtime can be found in you Steam installation folder (commenly *~/.local/share/Steam*). The runtime path is based on your operating system. For me it was *PATH_TO_STEAM/ubuntu12_32/steam-runtime/amd64/lib/x86_64-linux-gnu*. Create a new folder somewhere, note the path, and copy following files from the Steam runtime folder: 
+##4.0 Running the Plugin
+
+A few steps have to be taken before running the Plugin. First of all, Steam supplies some runtime libraries which are used by SteamVR. Some of those are older versions of commenly used libraries, some of which break RVIZ. Luckily SteamVR does not require those specific libraries, and we can therefore create a folder containing only the required libraries, and add that folder to the *LD_LIBRARY_PATH*. The Steam runtime can be found in you Steam installation folder. The exact path is based on your operating system (for me it was *~/.steam/ubuntu12_32/steam-runtime/amd64/lib/x86_64-linux-gnu*). Create a new folder somewhere, note the path, and copy following files from the Steam runtime folder: 
 
 * libdbus-1.so3
 * libdbus-1.so.3.5.8
 * libgpg-error.so.0.8.0
-* libgpg-ncurses.so.5
+* libncurses.so.5
 * libncurses.so.5.9
 * libselinux.so.1
 * libtinfo.so.5
@@ -49,5 +68,5 @@ To finally use the plugin, hookup your Vive, startup your ros environment, etc. 
 
 Start RVIZ *rosrun rviz rviz*, then press *Add* in the bottom left corner of the window, and add the *ViveDisplay*. Now the view in RVIZ should be rendered to your HTC Vive.
 
-##Credits
-This development of this plugin started by rewriting the [oculus_rviz_plugin](http://wiki.ros.org/oculus_rviz_plugins). Dynamically loading parts of the SteamVR library to implement headtracking, is strongly based on the [Vrui VR Toolkit](http://idav.ucdavis.edu/~okreylos/ResDev/Vrui/).
+##5.0 Credits
+This development of this plugin started by rewriting the [oculus_rviz_plugin](http://wiki.ros.org/oculus_rviz_plugins). Dynamically loading parts of the SteamVR library to implement headtracking, is heavily based on the [Vrui VR Toolkit](http://idav.ucdavis.edu/~okreylos/ResDev/Vrui/).

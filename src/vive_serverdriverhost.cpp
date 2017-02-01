@@ -9,6 +9,7 @@ by Olive Kreylos. Check out http://idav.ucdavis.edu/~okreylos/ResDev/Vrui/
 #include <dlfcn.h>
 #include <cstddef>
 #include <cstring>
+#include <cstdlib>
 
 extern "C" {
 #ifndef DECLSPEC
@@ -91,9 +92,11 @@ ServerDriverHost::ServerDriverHost()
 	
 	_numConnectedDevices = 0;
 	_rdy = 0;
-	
-	_pDriverHandle = dlopen("/home/upns/.local/share/Steam/steamapps/common/SteamVR/drivers/lighthouse/bin/linux64/driver_lighthouse.so",
-						RTLD_NOW);
+
+	std::string steamVRPath = std::getenv("steamvr");
+	std::string driverPath = steamVRPath + "/drivers/lighthouse/bin/linux64/driver_lighthouse.so";
+	std::string driverProviderPath = steamVRPath + "/drivers/lighthouse/bin/linux64";
+	_pDriverHandle = dlopen(driverPath.c_str(), RTLD_NOW);
 	if(!_pDriverHandle)
 	{
 		std::cout << "Unable to load SteamVR Lighthouse driver due to:" << dlerror() << std::endl;
@@ -118,7 +121,7 @@ ServerDriverHost::ServerDriverHost()
 	_pDriverLog = new DriverLog();
 	_pVrSettings = new VRSettings();
 	
-	vr::EVRInitError initError=_pVrTrackedDeviceProvider->Init(_pDriverLog,this, "/home/upns/agn", "/home/upns/.local/share/Steam/steamapps/common/SteamVR/drivers/lighthouse/bin/linux64");
+	vr::EVRInitError initError=_pVrTrackedDeviceProvider->Init(_pDriverLog,this, "/home", driverProviderPath.c_str());
 	if(int(initError))
 	{
 		std::cout << "Unable to initialize vrTrackedDeviceProvider: " << int(initError) << std::endl;
@@ -362,4 +365,5 @@ float ServerDriverHost::GetDevicePhsycialIpd(uint32_t unWhichDevice)
 
 bool ServerDriverHost::IsRdy()
 {
-	return _rdy;}
+	return _rdy;
+}

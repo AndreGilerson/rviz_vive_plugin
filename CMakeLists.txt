@@ -8,7 +8,8 @@ include_directories(${SDL2_INCLUDE_DIR})
 
 ##Hardcoded OpenVR Path please change
 set(OPENVR "~/agn/openvr")
-include_directories("${OPENVR}/headers" "${OPENVR}/samples")
+include_directories("${OPENVR}/headers")
+link_directories("${OPENVR}/lib/linux64")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 ")
 
 find_package(catkin REQUIRED COMPONENTS rviz)
@@ -33,37 +34,17 @@ else()
   set(QT_LIBRARIES Qt5::Widgets)
 endif()
 
-## I prefer the Qt signals and slots to avoid defining "emit", "slots",
-## etc because they can conflict with boost signals, so define QT_NO_KEYWORDS here.
 add_definitions(-DQT_NO_KEYWORDS)
 
-## Here we specify the list of source files.
-## The generated MOC files are included automatically as headers.
 set(SRC_FILES
   src/vive_display.cpp
   src/vive_driver.cpp
   src/vive_serverdriverhost.cpp
 )
 
-## An rviz plugin is just a shared library, so here we declare the
-## library to be called ``${PROJECT_NAME}`` (which is
-## "rviz_plugin_tutorials", or whatever your version of this project
-## is called) and specify the list of source files we collected above
-## in ``${SRC_FILES}``.
 add_library(${PROJECT_NAME} ${SRC_FILES})
 
-## Link the myviz executable with whatever Qt libraries have been defined by
-## the ``find_package(Qt4 ...)`` line above, or by the
-## ``set(QT_LIBRARIES Qt5::Widgets)``, and with whatever libraries
-## catkin has included.
-##
-## Although this puts "rviz_plugin_tutorials" (or whatever you have
-## called the project) as the name of the library, cmake knows it is a
-## library and names the actual file something like
-## "librviz_plugin_tutorials.so", or whatever is appropriate for your
-## particular OS.
-target_link_libraries(${PROJECT_NAME} ${QT_LIBRARIES} ${catkin_LIBRARIES} openvr_api ${SDL2_LIBRARY} ${OPENVR_LIB} ${GLEW_LIBRARIES} dl GL)
-## END_TUTORIAL
+target_link_libraries(${PROJECT_NAME} ${QT_LIBRARIES} ${catkin_LIBRARIES} openvr_api ${SDL2_LIBRARY} ${GLEW_LIBRARIES})
 
 ## Install rules
 
@@ -72,10 +53,6 @@ install(TARGETS
   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
-)
-
-install(DIRECTORY ogre_media
-  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
 )
 
 install(FILES
