@@ -2,6 +2,8 @@
 
 #This Plugin was developed at the [Institute for Mineral Resources Machine Technology, RWTH Aachen University](http://www.imr.rwth-aachen.de/)
 
+![screenshot from 2017-02-02 13-46-32](https://cloud.githubusercontent.com/assets/25487099/22546675/5bb0eef4-e93e-11e6-91fd-0e647c1953b2.png)
+
 ##0.0 Introduction
 This Plugins allows [RVIZ](http://wiki.ros.org/rviz) to render to the [HTC Vive](https://www.vive.com/), using [OGRE](http://www.ogre3d.org/). RVIZ is part of the Robot Operating System ([ROS](http://www.ros.org/)), an open source framework designed to simplify many processes in robot software development. RVIZ is a convient visualization tool, part of the main ROS install.
 This Plugin takes creates an additional render output in RVIZ, applies lens correction etc. allowing the user to immerse themselves into the simulated world.
