@@ -10,7 +10,7 @@ This Plugin takes creates an additional render output in RVIZ, applies lens corr
 
 As of February 1st, 2017 the Vive does not officially support Linux yet. Altough linux builds of SteamVR and OpenVR are available, theyre not fully functional. Ubuntu does however recognize the Vive as an additional screen. This plugin renders to a window on that screen and uses parts of SteamVR and OpenVr to implement headtracking.
 
-This Plugin was developed as part of a term paper by Andre Gilerson. The term paper was supervised by [Sascha Schade](https://github.com/strongly-typed), in a cooperation of hte Insitute for Mineral Resources Machine Technology and the [Institute for Man-Machine Interaction](https://www.mmi.rwth-aachen.de/). The plugin was developed and tested on Ubuntu 16.04, 64 bit, with a GTX 1080, and Nvidia 375.26 graphic drivers.
+This Plugin was developed as part of a term paper by Andre Gilerson. The term paper was supervised by [Sascha Schade](https://github.com/strongly-typed), in a cooperation of the Insitute for Mineral Resources Machine Technology and the [Institute for Man-Machine Interaction](https://www.mmi.rwth-aachen.de/). The plugin was developed and tested on Ubuntu 16.04, 64 bit, with a GTX 1080, and Nvidia 375.26 graphic drivers.
 
 ##1.0 Known Issues
 While using Ubuntu with the Unity desktop environment, the plugin cant Vsync with the Vive unless the Vive window has input focus. This is due to some issues with Compiz. It is therefore recommended to use Ubuntu with GNOME. To install GNOME on your system open up a terminal and *sudo apt-get install ubuntu-gnome-desktop*. Reboot and choose the GNOME desktop environment in the login screen.
@@ -96,3 +96,5 @@ KERNEL=="hidraw*", ATTRS{idVendor}=="0424", MODE="0666"
 
 ##5.0 Credits
 This development of this plugin started by rewriting the [oculus_rviz_plugin](http://wiki.ros.org/oculus_rviz_plugins). Dynamically loading parts of the SteamVR library to implement headtracking, is heavily based on the [Vrui VR Toolkit](http://idav.ucdavis.edu/~okreylos/ResDev/Vrui/).
+
+Initial research was done by [Alexander Luehm](https://github.com/luehm), his first results can be viewed [here](https://github.com/luehm/vive_rviz_plugins). The Term paper was supervised by [Sascha Schade](https://github.com/strongly-typed)
