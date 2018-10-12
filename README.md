@@ -1,3 +1,5 @@
+# This project was developed while no official Linux support was available for the HTC Vive and is therefore deprecated. I started a new project using the newest OpenVR and SteamVR versions as of 12.10.2018 in a [new repository](https://github.com/AndreGilerson/rviz_vive). I see no reason to further use or develop this project, but want to keep this repository around to be on the safe side with my university
+
 # RVIZ Plugin for the HTC Vive
 
 # This Plugin was developed at the [Institute for Mineral Resources Machine Technology, RWTH Aachen University](http://www.imr.rwth-aachen.de/)
